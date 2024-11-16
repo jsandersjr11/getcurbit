@@ -34,7 +34,6 @@ class AddressValidator {
 
             // Handle redirect based on ZIP code validation
             if (isValidZip) {
-                window.open('https://billing.stripe.com/p/login/6oE7vn2MM8uh7hm8ww', '_blank');
                 return {
                     isValid: true,
                     message: 'Great news! We service your area.',
@@ -80,23 +79,41 @@ document.addEventListener('DOMContentLoaded', () => {
             const formSuccess = form.querySelector('.w-form-done');
             formSuccess.style.display = 'none';
         } else {
-            // Show success message before redirect
-            const formSuccess = form.querySelector('.w-form-done');
-            formSuccess.style.display = 'block';
-            formSuccess.textContent = result.message;
-            
-            // Hide error if visible
-            const formError = form.querySelector('.w-form-fail');
-            formError.style.display = 'none';
-            
-            // Delay redirect slightly to show message
-            setTimeout(() => {
-                if (result.isValid) {
-                    window.open('https://billing.stripe.com/p/login/6oE7vn2MM8uh7hm8ww', '_blank');
-                } else {
-                    window.location.href = '/waitlist.html';
-                }
-            }, 1500);
+            if (result.isValid) {
+                // Clear form contents except close button
+                const formContent = form.parentElement;
+                
+                // Create a container div
+                const pricingContainer = document.createElement('div');
+                pricingContainer.id = 'pricing-table-container';
+                
+                // Add the pricing table and close button
+                pricingContainer.innerHTML = `
+                    <stripe-pricing-table 
+                        pricing-table-id="prctbl_1QK5goGwVRYqqGA7sG66CR6h"
+                        publishable-key="pk_live_51PhSkTGwVRYqqGA7KZ1MyQdPAkVQEjogtTdf7HU1HaD0VC39103UpCX2oKw4TQWQB17QL41ql2DHmprq1CxozbMa00bWPEYCoa"
+                        client-reference-id="${result.zipCode}">
+                    </stripe-pricing-table>
+                    <a data-w-id="b378606d-c709-8381-00a3-32a2acf8a46c" class="rl_navbar1_button-secondary w-button">Close</a>
+                `;
+                
+                // Clear existing content and append new container
+                formContent.innerHTML = '';
+                formContent.appendChild(pricingContainer);
+                
+                // Ensure the pricing table is properly initialized
+                setTimeout(() => {
+                    const pricingTable = document.querySelector('stripe-pricing-table');
+                    if (pricingTable && !pricingTable.hasAttribute('loaded')) {
+                        pricingTable.setAttribute('loaded', 'true');
+                        // Force a re-render if needed
+                        pricingTable.style.display = 'none';
+                        setTimeout(() => pricingTable.style.display = 'block', 100);
+                    }
+                }, 500);
+            } else {
+                window.location.href = '/waitlist.html';
+            }
         }
     });
 });
