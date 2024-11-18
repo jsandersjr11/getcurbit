@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('wf-form-Address-form');
     const addressInput = document.getElementById('address-2');
 
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
         e.preventDefault();
         
         const result = validator.validateAddress(addressInput.value);
@@ -79,10 +79,25 @@ document.addEventListener('DOMContentLoaded', () => {
             const formSuccess = form.querySelector('.w-form-done');
             formSuccess.style.display = 'none';
         } else {
+            // Show loading spinner
+            const formContent = form.parentElement;
+            formContent.innerHTML = `
+                <div style="text-align: center; padding: 20px;">
+                    <div style="border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+                    <style>
+                        @keyframes spin {
+                            0% { transform: rotate(0deg); }
+                            100% { transform: rotate(360deg); }
+                        }
+                    </style>
+                    <p style="margin-top: 10px;">Processing your request...</p>
+                </div>
+            `;
+
+            // Add slight delay to show loading state
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
             if (result.isValid) {
-                // Clear form contents except close button
-                const formContent = form.parentElement;
-                
                 // Create a container div
                 const pricingContainer = document.createElement('div');
                 pricingContainer.id = 'pricing-table-container';
