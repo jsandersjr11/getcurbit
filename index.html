@@ -415,10 +415,41 @@
                             autofocus="true"
                             required>
                         </mapbox-search-box>
+                        <input type="hidden" id="full-address" name="full-address">
                       </div>
-                      <input type="submit" data-wait="Please wait..." class="rl-button-5 w-button" value="Check availability ">
+                      <input type="submit" data-wait="Please wait..." class="rl-button-5 w-button" value="Check availability">
                       <a data-w-id="b378606d-c709-8381-00a3-32a2acf8a46c" class="rl_navbar1_button-secondary w-button">Close</a>
                     </form>
+                    <script>
+                      const searchBox = document.querySelector('mapbox-search-box');
+                      const fullAddressInput = document.getElementById('full-address');
+                      
+                      searchBox.addEventListener('retrieve', (event) => {
+                        const feature = event.detail;
+                        // Get full address from feature
+                        const fullAddress = feature.properties.full_address;
+                        fullAddressInput.value = fullAddress;
+                      });
+
+                      const form = document.getElementById('wf-form-Address-form');
+                      const validator = new AddressValidator(validZipCodes);
+
+                      form.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        const fullAddress = fullAddressInput.value;
+                        
+                        if (!fullAddress) {
+                          const formError = form.querySelector('.w-form-fail');
+                          formError.style.display = 'block';
+                          formError.textContent = 'Please select an address from the dropdown';
+                          return;
+                        }
+
+                        const result = validator.validateAddress(fullAddress);
+                        
+                        // Rest of the validation handling is already in address-validator.js
+                      });
+                    </script>
                     <div class="w-form-done" tabindex="-1" role="region" aria-label="Address form success">
                       <div>Thank you! Your submission has been received!</div>
                     </div>
