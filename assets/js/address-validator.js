@@ -8,16 +8,16 @@ class AddressValidator {
     // Load ZIP codes from CSV file
     async loadZipCodes() {
         try {
-            const response = await fetch('/assets/data/valid-zipcodes.csv');
+            const response = await fetch('./assets/data/valid-zipcodes.csv');
             const csvText = await response.text();
             this.validZipCodes = csvText
                 .split('\n')
                 .map(line => line.trim())
                 .filter(line => line.length > 0);
+            console.log('Loaded ZIP codes:', this.validZipCodes);
             this.initialized = true;
         } catch (error) {
             console.error('Error loading ZIP codes:', error);
-            // Fallback to default ZIP code if CSV fails to load
             this.validZipCodes = ['84005'];
             this.initialized = true;
         }
@@ -41,9 +41,12 @@ class AddressValidator {
 
     // Extract ZIP code from address string
     extractZipCode(address) {
-        // Look for 5 digit number pattern in address
-        const zipMatch = address.match(/\b\d{5}\b/);
-        return zipMatch ? zipMatch[0] : null;
+        // Look for ZIP code pattern that matches US format
+        const zipMatch = address.match(/\b\d{5}(?:-\d{4})?\b/);
+        const zip = zipMatch ? zipMatch[0].substring(0, 5) : null; // Take first 5 digits only
+        console.log('Input address:', address);
+        console.log('Extracted ZIP code:', zip);
+        return zip;
     }
 
     // Validate full address and handle redirect
@@ -56,6 +59,10 @@ class AddressValidator {
 
             // Extract ZIP code
             const zipCode = this.extractZipCode(addressString);
+            console.log('Validating ZIP code:', zipCode);
+            console.log('Valid ZIP codes array:', this.validZipCodes);
+            console.log('Is ZIP code included?', this.validZipCodes.includes(zipCode));
+
             if (!zipCode) {
                 throw new Error('No valid ZIP code found in address');
             }
@@ -100,10 +107,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         submitButton.disabled = true;
 
         try {
-            // Wait for ZIP codes to load
             await validator.waitForInit();
-
-            // Use the full address from the hidden input or the visible input
             const addressToValidate = addressInput?.value;
             
             if (!addressToValidate) {
@@ -112,7 +116,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const result = validator.validateAddress(addressToValidate);
 
-            // Handle validation result
             if (result.error) {
                 // Show error in form
                 const formError = form.querySelector('.w-form-fail');
@@ -128,7 +131,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             } else {
                 // Show loading spinner
-                const formContent = form.parentElement;
+                const formContent = document.querySelector('.rl_contact6_content');
+                if (!formContent) {
+                    throw new Error('Content container not found');
+                }
+
                 formContent.innerHTML = `
                     <div style="text-align: center; padding: 20px;">
                         <div style="border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto;"></div>
@@ -143,36 +150,28 @@ document.addEventListener('DOMContentLoaded', async () => {
                 `;
 
                 // Add slight delay to show loading state
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                await new Promise(resolve => setTimeout(resolve, 1000));
 
                 if (result.isValid) {
-                    // Create a container div
-                    const pricingContainer = document.createElement('div');
-                    pricingContainer.id = 'pricing-table-container';
-                    
-                    // Add the pricing table and close button
-                    pricingContainer.innerHTML = `
+                    // Load Stripe script dynamically
+                    const stripeScript = document.createElement('script');
+                    stripeScript.src = 'https://js.stripe.com/v3/pricing-table.js';
+                    stripeScript.async = true;
+                    document.head.appendChild(stripeScript);
+
+                    // Wait for script to load
+                    await new Promise(resolve => stripeScript.onload = resolve);
+
+                    // Update content with pricing table
+                    formContent.innerHTML = `
                         <stripe-pricing-table 
-                            pricing-table-id="prctbl_1QK5goGwVRYqqGA7sG66CR6h"
+                            pricing-table-id="prctbl_1QNaV0GwVRYqqGA78wH32vEu"
                             publishable-key="pk_live_51PhSkTGwVRYqqGA7KZ1MyQdPAkVQEjogtTdf7HU1HaD0VC39103UpCX2oKw4TQWQB17QL41ql2DHmprq1CxozbMa00bWPEYCoa"
-                            client-reference-id="${result.zipCode}">
+                            client-reference-id="${result.zipCode}"
+                            customer-email=""
+                            customer-address="${addressToValidate}">
                         </stripe-pricing-table>
-                        <a data-w-id="b378606d-c709-8381-00a3-32a2acf8a46c" class="rl_navbar1_button-secondary w-button">Close</a>
                     `;
-                    
-                    // Clear existing content and append new container
-                    formContent.innerHTML = '';
-                    formContent.appendChild(pricingContainer);
-                    
-                    // Ensure the pricing table is properly initialized
-                    setTimeout(() => {
-                        const pricingTable = document.querySelector('stripe-pricing-table');
-                        if (pricingTable && !pricingTable.hasAttribute('loaded')) {
-                            pricingTable.setAttribute('loaded', 'true');
-                            pricingTable.style.display = 'none';
-                            setTimeout(() => pricingTable.style.display = 'block', 100);
-                        }
-                    }, 500);
                 } else {
                     window.location.href = '/waitlist.html';
                 }
