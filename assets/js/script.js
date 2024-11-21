@@ -10764,45 +10764,45 @@ Webflow.require('ix2').init({
             "createdOn": 1730560340617
         },
         "e-27": {
-            "id": "e-27",
-            "name": "",
-            "animationType": "custom",
-            "eventTypeId": "MOUSE_CLICK",
-            "action": {
-                "id": "",
-                "actionTypeId": "GENERAL_START_ACTION",
-                "config": {
-                    "delay": 0,
-                    "easing": "",
-                    "duration": 0,
-                    "actionListId": "a-27",
-                    "affectedElements": {},
-                    "playInReverse": false,
-                    "autoStopEventId": "e-28"
-                }
-            },
-            "mediaQueries": ["main", "medium", "small", "tiny"],
-            "target": {
-                "selector": ".checkcheck",
-                "originalId": "671ab3d6bb6b06ff956866c9|d9036e20-74b5-095c-beb5-6079755a962f",
-                "appliesTo": "CLASS"
-            },
-            "targets": [{
-                "selector": ".checkcheck",
-                "originalId": "671ab3d6bb6b06ff956866c9|d9036e20-74b5-095c-beb5-6079755a962f",
-                "appliesTo": "CLASS"
-            }],
-            "config": {
-                "loop": false,
-                "playInReverse": false,
-                "scrollOffsetValue": null,
-                "scrollOffsetUnit": null,
-                "delay": null,
-                "direction": null,
-                "effectIn": null
-            },
-            "createdOn": 1731560958199
-        },
+    "id": "e-27",
+    "name": "",
+    "animationType": "custom",
+    "eventTypeId": "MOUSE_CLICK",
+    "action": {
+        "id": "",
+        "actionTypeId": "GENERAL_START_ACTION",
+        "config": {
+            "delay": 0,
+            "easing": "",
+            "duration": 0,
+            "actionListId": "a-27",
+            "affectedElements": {},
+            "playInReverse": false,
+            "autoStopEventId": "e-28"
+        }
+    },
+    "mediaQueries": ["main", "medium", "small", "tiny"],
+    "target": {
+        "selector": ".checkcheck",
+        "originalId": "671ab3d6bb6b06ff956866c9|d9036e20-74b5-095c-beb5-6079755a962f",
+        "appliesTo": "CLASS"
+    },
+    "targets": [{
+        "selector": ".checkcheck",
+        "originalId": "671ab3d6bb6b06ff956866c9|d9036e20-74b5-095c-beb5-6079755a962f",
+        "appliesTo": "CLASS"
+    }],
+    "config": {
+        "loop": false,
+        "playInReverse": false,
+        "scrollOffsetValue": null,
+        "scrollOffsetUnit": null,
+        "delay": null,
+        "direction": null,
+        "effectIn": null
+    },
+    "createdOn": 1731560958199
+},
         "e-31": {
             "id": "e-31",
             "name": "",
@@ -10831,6 +10831,45 @@ Webflow.require('ix2').init({
                 "id": "671ab3d6bb6b06ff956866c9|b378606d-c709-8381-00a3-32a2acf8a46c",
                 "appliesTo": "ELEMENT",
                 "styleBlockIds": []
+            }],
+            "config": {
+                "loop": false,
+                "playInReverse": false,
+                "scrollOffsetValue": null,
+                "scrollOffsetUnit": null,
+                "delay": null,
+                "direction": null,
+                "effectIn": null
+            },
+            "createdOn": 1731702915624
+        },
+
+        "e-33": {
+            "id": "e-33",
+            "name": "",
+            "animationType": "custom",
+            "eventTypeId": "MOUSE_CLICK",
+            "action": {
+                "id": "",
+                "actionTypeId": "GENERAL_START_ACTION",
+                "config": {
+                    "delay": 0,
+                    "easing": "",
+                    "duration": 0,
+                    "actionListId": "a-28",
+                    "affectedElements": {},
+                    "playInReverse": false,
+                    "autoStopEventId": "e-34"
+                }
+            },
+            "mediaQueries": ["main", "medium", "small", "tiny"],
+            "target": {
+                "selector": ".modal-wrapper",
+                "selectorGuids": ["de3eb692-c028-1fe9-9770-8a6ba2edb65a"]
+            },
+            "targets": [{
+                "selector": ".modal-wrapper",
+                "selectorGuids": ["de3eb692-c028-1fe9-9770-8a6ba2edb65a"]
             }],
             "config": {
                 "loop": false,
@@ -11204,4 +11243,49 @@ Webflow.require('ix2').init({
             "max": 479
         }]
     }
+});
+
+window.addEventListener('load', function() {
+    // Existing modal click handler code...
+    const modalWrapper = document.querySelector('.modal-wrapper');
+    const modal = document.querySelector('.rl_modal');
+    
+    if (modalWrapper && modal) {
+        modalWrapper.addEventListener('click', function(e) {
+            // Only close if clicking directly on the wrapper (not the modal)
+            if (e.target === modalWrapper) {
+                // Trigger the close action
+                Webflow.require('ix2').instance.dispatch({
+                    type: 'COMPONENT_ACTIVE',
+                    payload: {
+                        type: 'MOUSE_CLICK',
+                        targets: [{
+                            selector: '.modal-wrapper',
+                            selectorGuids: ['de3eb692-c028-1fe9-9770-8a6ba2edb65a']
+                        }]
+                    }
+                });
+            }
+        });
+
+        // Prevent clicks within modal from bubbling to wrapper
+        modal.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    }
+});
+
+window.addEventListener('load', function() {
+    // Existing modal click handler code...
+    
+    // Add click handler for .checkcheck elements
+    document.querySelectorAll('.checkcheck').forEach(function(elem) {
+        elem.addEventListener('click', function() {
+            // Small delay to ensure modal is visible
+            setTimeout(function() {
+                const input = document.getElementById('address-input');
+                if (input) input.focus();
+            }, 100);
+        });
+    });
 });
