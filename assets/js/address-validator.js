@@ -83,7 +83,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const validator = new AddressValidator();
     const form = document.getElementById('wf-form-Address-form');
     const addressInput = document.getElementById('address-input');
-    const fullAddressInput = document.getElementById('full-address');
     const submitButton = form.querySelector('input[type="submit"]');
 
     // Ensure the form exists before adding the event listener
@@ -105,7 +104,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             await validator.waitForInit();
 
             // Use the full address from the hidden input or the visible input
-            const addressToValidate = fullAddressInput?.value || addressInput?.value;
+            const addressToValidate = addressInput?.value;
             
             if (!addressToValidate) {
                 throw new Error('Please enter an address');
