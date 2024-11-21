@@ -5516,6 +5516,7 @@ textarea.w-input, textarea.w-select {
   font-family: Inconsolata, monospace;
   display: block;
   position: relative;
+  font-size: 1rem;
 }
 
 .rl-button-text {
