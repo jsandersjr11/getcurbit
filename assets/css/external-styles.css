@@ -1,0 +1,9 @@
+#place-picker-box {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+  }
+  
+  #place-picker-container {
+    text-align: left;
+  }
