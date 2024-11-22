@@ -7,3 +7,25 @@
   #place-picker-container {
     text-align: left;
   }
+
+  .address-input-clear {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #999;
+    padding: 0 8px;
+    line-height: 1;
+  }
+
+  .address-input-clear:hover {
+    color: #333;
+  }
+
+  #address-input {
+    padding-right: 35px; /* Make room for the clear button */
+  }

@@ -92,6 +92,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     const addressInput = document.getElementById('address-input');
     const submitButton = form.querySelector('input[type="submit"]');
 
+    // Add clear button to address input
+    const clearButton = document.createElement('button');
+    clearButton.innerHTML = '×';
+    clearButton.className = 'address-input-clear';
+    clearButton.type = 'button'; // Prevent form submission
+    clearButton.style.display = 'none';
+    addressInput.parentElement.style.position = 'relative';
+    addressInput.parentElement.appendChild(clearButton);
+
+    // Show/hide clear button based on input content
+    addressInput.addEventListener('input', () => {
+        clearButton.style.display = addressInput.value ? 'block' : 'none';
+    });
+
+    // Clear input when button is clicked
+    clearButton.addEventListener('click', () => {
+        addressInput.value = '';
+        clearButton.style.display = 'none';
+        addressInput.focus();
+    });
+
     // Ensure the form exists before adding the event listener
     if (!form) {
         console.error('Form not found!');
@@ -136,7 +157,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                     throw new Error('Content container not found');
                 }
 
-                formContent.innerHTML = `
+                // Store the original form HTML before showing loading spinner
+                const originalFormHTML = formContent.innerHTML;
+
+                // Create and insert loading spinner
+                const loadingSpinner = document.createElement('div');
+                loadingSpinner.className = 'loading-spinner';
+                loadingSpinner.innerHTML = `
                     <div style="text-align: center; padding: 20px;">
                         <div style="border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto;"></div>
                         <style>
@@ -148,22 +175,34 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <p style="margin-top: 10px;">Processing your request...</p>
                     </div>
                 `;
+                formContent.parentNode.insertBefore(loadingSpinner, formContent.nextSibling);
+                
+                // Hide the form content
+                formContent.style.display = 'none';
 
                 // Add slight delay to show loading state
                 await new Promise(resolve => setTimeout(resolve, 1000));
 
+                // Remove loading spinner
+                loadingSpinner.remove();
+
                 if (result.isValid) {
-                    // Load Stripe script dynamically
-                    const stripeScript = document.createElement('script');
-                    stripeScript.src = 'https://js.stripe.com/v3/pricing-table.js';
-                    stripeScript.async = true;
-                    document.head.appendChild(stripeScript);
-
-                    // Wait for script to load
-                    await new Promise(resolve => stripeScript.onload = resolve);
-
-                    // Update content with pricing table
-                    formContent.innerHTML = `
+                    // Create new container for Stripe pricing
+                    const stripePricingContainer = document.createElement('div');
+                    stripePricingContainer.id = 'stripe-pricing-container';
+                    stripePricingContainer.innerHTML = `
+                        <div class="validated-address-wrapper" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                            <div class="rl-heading-style-h6-3 validated-address">${addressToValidate}</div>
+                            <button type="button" 
+                                    class="edit-address-btn" 
+                                    style="background: none; border: none; cursor: pointer; padding: 8px;"
+                                    aria-label="Edit address">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                </svg>
+                            </button>
+                        </div>
                         <stripe-pricing-table 
                             pricing-table-id="prctbl_1QNaV0GwVRYqqGA78wH32vEu"
                             publishable-key="pk_live_51PhSkTGwVRYqqGA7KZ1MyQdPAkVQEjogtTdf7HU1HaD0VC39103UpCX2oKw4TQWQB17QL41ql2DHmprq1CxozbMa00bWPEYCoa"
@@ -172,6 +211,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                             customer-address="${addressToValidate}">
                         </stripe-pricing-table>
                     `;
+
+                    // Insert the Stripe container after the form content
+                    formContent.parentNode.insertBefore(stripePricingContainer, formContent.nextSibling);
+
+                    // Update edit button click handler
+                    const editButton = stripePricingContainer.querySelector('.edit-address-btn');
+                    if (editButton) {
+                        editButton.addEventListener('click', () => {
+                            formContent.style.display = 'block';
+                            stripePricingContainer.remove();
+                        });
+                    }
                 } else {
                     window.location.href = '/waitlist.html';
                 }
