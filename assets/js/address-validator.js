@@ -228,7 +228,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const formData = {
                         address: addressToValidate
                     };
-                    sessionStorage.setItem('addressData', JSON.stringify(formData));
+                    localStorage.setItem('addressData', JSON.stringify(formData));
                     window.location.href = '/waitlist.html';
                 }
             }
