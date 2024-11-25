@@ -224,6 +224,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                         });
                     }
                 } else {
+                    // Modified redirect to handle HubSpot form
+                    const formData = {
+                        address: addressToValidate
+                    };
+                    sessionStorage.setItem('addressData', JSON.stringify(formData));
                     window.location.href = '/waitlist.html';
                 }
             }

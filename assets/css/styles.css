@@ -5131,7 +5131,7 @@ textarea.w-input, textarea.w-select {
   font-weight: 600;
 }
 
-.rl-success-message-2 {
+.rl-success-message-2, .rl-success-message-3 {
   background-color: #0000;
   padding: 1.5rem;
 }
