@@ -532,10 +532,12 @@
                       <div class="address-input-wrapper">
                         <input type="text" 
                                id="address-input" 
-                               name="address" 
+                               name="address"
                                placeholder="Enter an address" 
                                class="form-control text-field w-input"
-                               autocomplete="off">
+                               autocomplete="street-address"
+                               aria-label="Street address"
+                               inputmode="text">
                         <input type="hidden" id="full-address" name="full-address">
                         <div id="address-suggestions" class="suggestions-dropdown"></div>
                       </div>
