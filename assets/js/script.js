@@ -11289,3 +11289,41 @@ window.addEventListener('load', function() {
         });
     });
 });
+
+// Remove or comment out this section to prevent chat from opening on button clicks
+/*
+document.addEventListener('DOMContentLoaded', function() {
+    const checkButtons = document.querySelectorAll('.checkcheck');
+    checkButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            startChatWithMessage("Hi! I'd like to check if Curbit is available in my area.");
+        });
+    });
+});
+*/
+
+// Keep these utility functions for future use if needed
+function openChat() {
+    $crisp.push(["do", "chat:open"]);
+}
+
+function closeChat() {
+    $crisp.push(["do", "chat:close"]);
+}
+
+function toggleChatButton(show) {
+    if (show) {
+        $crisp.push(["do", "chat:show"]);
+    } else {
+        $crisp.push(["do", "chat:hide"]);
+    }
+}
+
+function setChatLocale(locale) {
+    $crisp.push(["set", "user:locale", locale]);
+}
+
+function startChatWithMessage(message) {
+    $crisp.push(["do", "message:show", ["text", message]]);
+    $crisp.push(["do", "chat:open"]);
+}

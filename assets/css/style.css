@@ -1,0 +1,95 @@
+/* Policy Pages Styles */
+.container h1 {
+    margin-bottom: 30px;
+    color: #333;
+}
+
+.container h2 {
+    margin: 25px 0 15px;
+    color: #444;
+}
+
+.container h3 {
+    margin: 20px 0 10px;
+    color: #555;
+}
+
+.container p {
+    margin-bottom: 15px;
+    line-height: 1.6;
+}
+
+.container ul {
+    margin-bottom: 15px;
+    padding-left: 20px;
+}
+
+.container ul li {
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.container em {
+    color: #666;
+}
+
+/* Additional Policy Page Styles */
+.container h3 {
+    color: #555;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    font-size: 1.2em;
+}
+
+.container ul {
+    margin-bottom: 20px;
+}
+
+.container ul li {
+    margin-bottom: 10px;
+    line-height: 1.5;
+}
+
+/* Policy section spacing */
+.container h2 {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+/* First h2 exception */
+.container h2:first-of-type {
+    border-top: none;
+    margin-top: 20px;
+}
+
+/* Emphasis for important points */
+.container .important {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-left: 4px solid #4098E0;
+    margin: 20px 0;
+}
+
+.footer-links {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.footer-links a {
+    color: #333;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.footer-links a:hover {
+    color: #4098E0;
+}
+
+@media (max-width: 768px) {
+    .footer-links {
+        gap: 15px;
+        justify-content: center;
+    }
+} 
