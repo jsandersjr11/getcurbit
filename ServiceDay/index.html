@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trash to Curb Service</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container mx-auto p-4">
+        <div id="address-check" class="card">
+          <div class="mb-4">
+            <h2 class="text-2xl font-bold">Check Your Address</h2>
+            <p class="text-muted-foreground">Enter your address to see if we service your area.</p>
+          </div>
+          <form id="address-form" class="space-y-4">
+            <div class="space-y-2">
+              <label for="address-input" class="text-sm font-medium">Address</label>
+              <input type="text" id="address-input" placeholder="Enter your address" required class="w-full">
+            </div>
+            <button type="submit" class="w-full">Check Address</button>
+          </form>
+        </div>
+
+        <div id="service-info" class="card hidden">
+          <div class="mb-4">
+            <h2 class="text-2xl font-bold">Trash to Curb Service</h2>
+            <p id="service-area-message" class="text-muted-foreground"></p>
+          </div>
+          <form id="service-form" class="space-y-6">
+                <div id="service-details" class="hidden space-y-6">
+                  <div class="service-info-section">
+                    <div class="flex justify-between items-start mb-4">
+                      <h3 class="text-lg font-semibold">Your Service Information</h3>
+                      <button type="button" id="edit-service-info" class="secondary">Edit</button>
+                    </div>
+                    <div id="service-info-display"></div>
+                  </div>
+                    <div id="service-info-form" class="hidden">
+                        <div class="form-group">
+                            <label for="service-day">Service Day</label>
+                            <select id="service-day" required>
+                                <option value="">Select service day</option>
+                                <option value="Monday">Monday</option>
+                                <option value="Tuesday">Tuesday</option>
+                                <option value="Wednesday">Wednesday</option>
+                                <option value="Thursday">Thursday</option>
+                                <option value="Friday">Friday</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="trash-frequency">Trash Pickup Frequency</label>
+                            <select id="trash-frequency" required>
+                                <option value="">Select trash pickup frequency</option>
+                                <option value="Weekly">Weekly</option>
+                                <option value="Bi-weekly">Bi-weekly</option>
+                                <option value="Monthly">Monthly</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="recycling-frequency">Recycling Pickup Frequency</label>
+                            <select id="recycling-frequency">
+                                <option value="none">No recycling service</option>
+                                <option value="Weekly">Weekly</option>
+                                <option value="Bi-weekly">Bi-weekly</option>
+                                <option value="Monthly">Monthly</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="compost-frequency">Compost Pickup Frequency</label>
+                            <select id="compost-frequency">
+                                <option value="none">No compost service</option>
+                                <option value="Weekly">Weekly</option>
+                                <option value="Bi-weekly">Bi-weekly</option>
+                                <option value="Monthly">Monthly</option>
+                            </select>
+                        </div>
+                        <div class="button-group">
+                            <button type="button" id="cancel-edit">Cancel</button>
+                            <button type="button" id="save-changes">Save Changes</button>
+                        </div>
+                    </div>
+                    <div id="bin-quantities" class="space-y-4">
+                        <h3 class="text-lg font-semibold">Select Your Bins</h3>
+                        <div class="input-stepper">
+                            <span>Trash</span>
+                            <button type="button" class="decrement">-</button>
+                            <input type="number" id="trash-quantity" value="1" min="1" max="5">
+                            <button type="button" class="increment">+</button>
+                        </div>
+                        <div class="input-stepper" id="recycling-stepper">
+                            <span>Recycling</span>
+                            <button type="button" class="decrement">-</button>
+                            <input type="number" id="recycling-quantity" value="0" min="0" max="5">
+                            <button type="button" class="increment">+</button>
+                        </div>
+                        <div class="input-stepper" id="compost-stepper">
+                            <span>Compost</span>
+                            <button type="button" class="decrement">-</button>
+                            <input type="number" id="compost-quantity" value="0" min="0" max="5">
+                            <button type="button" class="increment">+</button>
+                        </div>
+                    </div>
+                    <div id="pricing" class="pricing-section">
+                      <h3 class="text-lg font-semibold mb-2">Pricing</h3>
+                      <p id="total-price" class="font-semibold"></p>
+                      <p class="text-sm text-muted-foreground mt-1">
+                        Base price: $39/month for one can (weekly collection). Additional cans: $10/month each. Bi-weekly collection: 50% off. Monthly collection: 75% off.
+                      </p>
+                    </div>
+                    <button type="submit">Sign Up for Can-to-Curb Service</button>
+                </div>
+                <div id="reminder-section" class="hidden space-y-4">
+                    <h3>Optional: Pickup Reminders</h3>
+                    <div class="form-group">
+                        <input type="checkbox" id="want-reminders">
+                        <label for="want-reminders">I want to receive reminders</label>
+                    </div>
+                    <div id="reminder-options" class="hidden">
+                        <div class="form-group">
+                            <label>Reminder Method</label>
+                            <div>
+                                <input type="radio" id="sms" name="reminder-method" value="sms" checked>
+                                <label for="sms">SMS</label>
+                            </div>
+                            <div>
+                                <input type="radio" id="email" name="reminder-method" value="email">
+                                <label for="email">Email</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="contact-info">Phone Number</label>
+                            <input type="tel" id="contact-info" required>
+                        </div>
+                        <button type="button" id="sign-up-reminders">Sign Up for Reminders</button>
+                    </div>
+                </div>
+                <div id="reminder-confirmation" class="hidden">
+                    <h3>Reminder Sign-Up Confirmed</h3>
+                    <p>You've successfully signed up for pickup reminders. We'll send them to you via <span id="reminder-method-display"></span>.</p>
+                </div>
+            </form>
+        </div>
+        <div class="mt-6">
+          <button type="button" id="check-another-address" class="w-full secondary">Check Another Address</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
+
