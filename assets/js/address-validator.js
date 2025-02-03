@@ -229,7 +229,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         address: addressToValidate
                     };
                     localStorage.setItem('addressData', JSON.stringify(formData));
-                    window.location.href = '/waitlist.html';
+                    window.location.href = '/signup/future-service.html';
                 }
             }
         } catch (error) {
