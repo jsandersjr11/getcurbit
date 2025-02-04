@@ -199,34 +199,19 @@
              id="w-nav-overlay-0"></div>
     </div>
     <div class="container mx-auto p-4">
-        <div id="address-check" class="card">
-          <div class="mb-4">
-            <h2 class="text-2xl font-bold">Check Your Address</h2>
-            <p class="text-muted-foreground">Enter your address to see if we service your area.</p>
-          </div>
-          <form id="address-form" class="space-y-4">
-            <div class="space-y-2">
-              <label for="address-input" class="text-sm font-medium">Address</label>
-              <input type="text" id="address-input" placeholder="Enter your address" required class="w-full">
-            </div>
-            <button type="submit" class="w-full">Check Address</button>
-          </form>
-        </div>
-
-        <div id="service-info" class="card hidden">
+        <div id="service-info" class="card">
           <div class="mb-4">
             <h2 class="text-2xl font-bold">Trash to Curb Service</h2>
             <p id="service-area-message" class="text-muted-foreground"></p>
           </div>
           <form id="service-form" class="space-y-6">
-                <div id="service-details" class="hidden space-y-6">
+                <div id="service-details" class="space-y-6">
                   <div class="service-info-section">
                     <div class="flex justify-between items-start mb-4">
                       <h3 class="text-lg font-semibold">Your Service Information</h3>
                       <button type="button" id="edit-service-info" class="secondary">Edit</button>
                     </div>
                     <div id="service-info-display"></div>
-                  </div>
                     <div id="service-info-form" class="hidden">
                         <div class="form-group">
                             <label for="service-day">Service Day</label>
@@ -243,6 +228,7 @@
                             <label for="trash-frequency">Trash Pickup Frequency</label>
                             <select id="trash-frequency" required>
                                 <option value="">Select trash pickup frequency</option>
+                                <option value="none">None</option>
                                 <option value="Weekly">Weekly</option>
                                 <option value="Bi-weekly">Bi-weekly</option>
                                 <option value="Monthly">Monthly</option>
@@ -266,30 +252,65 @@
                                 <option value="Monthly">Monthly</option>
                             </select>
                         </div>
-                        <div class="button-group">
+                        <!-- <div class="button-group">
                             <button type="button" id="cancel-edit">Cancel</button>
                             <button type="button" id="save-changes">Save Changes</button>
-                        </div>
+                        </div> -->
                     </div>
+                  </div>
+                    
                     <div id="bin-quantities" class="space-y-4">
                         <h3 class="text-lg font-semibold">Select Your Bins</h3>
-                        <div class="input-stepper">
-                            <span>Trash</span>
-                            <button type="button" class="decrement">-</button>
-                            <input type="number" id="trash-quantity" value="1" min="1" max="5">
-                            <button type="button" class="increment">+</button>
+                        <div id="trash-container">
+                            <div class="input-stepper">
+                                <span>Trash</span>
+                                <button type="button" class="decrement">-</button>
+                                <input type="number" id="trash-quantity" value="1" min="1" max="5">
+                                <button type="button" class="increment">+</button>
+                            </div>
+                            <div class="frequency-select hidden">
+                                <span>Trash</span>
+                                <select id="trash-bin-frequency">
+                                    <option value="none">None</option>
+                                    <option value="Weekly">Weekly</option>
+                                    <option value="Bi-weekly">Bi-weekly</option>
+                                    <option value="Monthly">Monthly</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="input-stepper" id="recycling-stepper">
-                            <span>Recycling</span>
-                            <button type="button" class="decrement">-</button>
-                            <input type="number" id="recycling-quantity" value="0" min="0" max="5">
-                            <button type="button" class="increment">+</button>
+                        <div id="recycling-container">
+                            <div class="input-stepper" id="recycling-stepper">
+                                <span>Recycling</span>
+                                <button type="button" class="decrement">-</button>
+                                <input type="number" id="recycling-quantity" value="0" min="0" max="5">
+                                <button type="button" class="increment">+</button>
+                            </div>
+                            <div class="frequency-select hidden">
+                                <span>Recycling</span>
+                                <select id="recycling-bin-frequency">
+                                    <option value="none">None</option>
+                                    <option value="Weekly">Weekly</option>
+                                    <option value="Bi-weekly">Bi-weekly</option>
+                                    <option value="Monthly">Monthly</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="input-stepper" id="compost-stepper">
-                            <span>Compost</span>
-                            <button type="button" class="decrement">-</button>
-                            <input type="number" id="compost-quantity" value="0" min="0" max="5">
-                            <button type="button" class="increment">+</button>
+                        <div id="compost-container">
+                            <div class="input-stepper" id="compost-stepper">
+                                <span>Compost</span>
+                                <button type="button" class="decrement">-</button>
+                                <input type="number" id="compost-quantity" value="0" min="0" max="5">
+                                <button type="button" class="increment">+</button>
+                            </div>
+                            <div class="frequency-select hidden">
+                                <span>Compost</span>
+                                <select id="compost-bin-frequency">
+                                    <option value="none">None</option>
+                                    <option value="Weekly">Weekly</option>
+                                    <option value="Bi-weekly">Bi-weekly</option>
+                                    <option value="Monthly">Monthly</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                     <div id="pricing" class="pricing-section">
@@ -336,7 +357,7 @@
           <button type="button" id="check-another-address" class="w-full secondary">Check Another Address</button>
         </div>
     </div>
-    <script src="script.js"></script>
+    <script src="service-details.js"></script>
 </body>
 </html>
 

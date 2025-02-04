@@ -153,7 +153,7 @@ button.secondary:hover {
   display: none;
 }
 
-.service-info-section {
+.service-info-section, #service-info-form {
   background-color: hsl(var(--muted));
   border-radius: var(--radius);
   padding: 1rem;
@@ -161,37 +161,100 @@ button.secondary:hover {
 }
 
 .pricing-section {
-  background-color: hsl(var(--muted));
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
-  padding: 1rem;
+  padding: 1.5rem;
   margin-top: 1.5rem;
+}
+
+#total-price {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: hsl(var(--primary));
+  margin: 1rem 0;
+}
+
+.pricing-section .text-muted-foreground {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.875rem;
+  line-height: 1.5;
 }
 
 .input-stepper {
   display: flex;
   align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
   margin-bottom: 1rem;
 }
 
 .input-stepper span {
-  width: 80px;
+  flex: 1;
   font-size: 0.875rem;
+  font-weight: 500;
+  color: hsl(var(--foreground));
 }
 
 .input-stepper input {
-  width: 50px;
+  width: 3rem;
   text-align: center;
-  margin: 0 0.5rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  padding: 0.25rem;
+  font-weight: 500;
 }
 
 .input-stepper button {
   width: 2rem;
   height: 2rem;
   padding: 0;
-  font-size: 1rem;
-  background-color: hsl(var(--secondary));
-  color: hsl(var(--secondary-foreground));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border: none;
+  border-radius: var(--radius);
+  font-size: 1.25rem;
+  line-height: 1;
+  transition: background-color 0.2s;
+}
+
+.input-stepper button:hover {
+  background-color: hsl(var(--primary) / 0.9);
+}
+
+.input-stepper button:disabled {
+  background-color: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  cursor: not-allowed;
+}
+
+.frequency-select {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  background-color: hsl(var(--card));
   border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  margin-bottom: 1rem;
+}
+
+.frequency-select span {
+  flex: 1;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: hsl(var(--foreground));
+}
+
+.frequency-select select {
+  width: auto;
+  min-width: 120px;
 }
 
 .button-group {
