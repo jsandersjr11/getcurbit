@@ -221,26 +221,19 @@
           <form id="service-form" class="space-y-6">
 <<<<<<< HEAD
                 <div id="service-details" class="space-y-6">
-<<<<<<< HEAD
                     <div id="bin-quantities" class="space-y-4">
                         <h3 class="text-lg font-semibold">Your Service Information</h3>
 =======
                 <div id="service-details" class="hidden space-y-6">
-=======
->>>>>>> parent of ad7107c (Form updates)
                   <div class="service-info-section">
                     <div class="flex justify-between items-start mb-4">
                       <h3 class="text-lg font-semibold">Your Service Information</h3>
                       <button type="button" id="edit-service-info" class="secondary">Edit</button>
                     </div>
                     <div id="service-info-display"></div>
-<<<<<<< HEAD
                   </div>
                     <div id="service-info-form" class="hidden">
 >>>>>>> parent of cb077fe (Signup form usability improvements)
-=======
-                    <div id="service-info-form" class="hidden">
->>>>>>> parent of ad7107c (Form updates)
                         <div class="form-group">
                             <label for="service-day">Service Day</label>
                             <select id="service-day" required>
@@ -252,7 +245,6 @@
                                 <option value="Friday">Friday</option>
                             </select>
                         </div>
-<<<<<<< HEAD
 <<<<<<< HEAD
                         <label>Select Your Bins</label>
                         <div id="trash-container" class="bin-container-type">
@@ -267,87 +259,44 @@
                             </div>
                             <div class="input-stepper trash-input-stepper">
                                 <span># Bins</span>
-=======
-                        <div class="form-group">
-                            <label for="trash-frequency">Trash Pickup Frequency</label>
-                            <select id="trash-frequency" required>
-                                <option value="">Select trash pickup frequency</option>
-                                <option value="none">None</option>
-                                <option value="Weekly">Weekly</option>
-                                <option value="Bi-weekly">Bi-weekly</option>
-                                <option value="Monthly">Monthly</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="recycling-frequency">Recycling Pickup Frequency</label>
-                            <select id="recycling-frequency">
-                                <option value="none">No recycling service</option>
-                                <option value="Weekly">Weekly</option>
-                                <option value="Bi-weekly">Bi-weekly</option>
-                                <option value="Monthly">Monthly</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="compost-frequency">Compost Pickup Frequency</label>
-                            <select id="compost-frequency">
-                                <option value="none">No compost service</option>
-                                <option value="Weekly">Weekly</option>
-                                <option value="Bi-weekly">Bi-weekly</option>
-                                <option value="Monthly">Monthly</option>
-                            </select>
-                        </div>
-                        <!-- <div class="button-group">
-                            <button type="button" id="cancel-edit">Cancel</button>
-                            <button type="button" id="save-changes">Save Changes</button>
-                        </div> -->
-                    </div>
-                  </div>
-                    
-                    <div id="bin-quantities" class="space-y-4">
-                        <h3 class="text-lg font-semibold">Select Your Bins</h3>
-                        <div id="trash-container">
-                            <div class="input-stepper">
-                                <span>Trash</span>
->>>>>>> parent of ad7107c (Form updates)
                                 <button type="button" class="decrement">-</button>
                                 <input type="number" id="trash-quantity" value="1" min="1" max="5">
                                 <button type="button" class="increment">+</button>
                             </div>
-                            <div class="frequency-select hidden">
-                                <span>Trash</span>
-                                <select id="trash-bin-frequency">
-                                    <option value="none">None</option>
+                        </div>
+                        <div id="recycling-container" class="bin-container-type">
+                            <div class="frequency-select">
+                                <span>Recycling Pickup Frequency</span>
+                                <select id="recycling-bin-frequency">
+                                    <option value="none">No recycling service</option>
                                     <option value="Weekly">Weekly</option>
                                     <option value="Bi-weekly">Bi-weekly</option>
                                     <option value="Monthly">Monthly</option>
                                 </select>
                             </div>
-                        </div>
-                        <div id="recycling-container">
-                            <div class="input-stepper" id="recycling-stepper">
-                                <span>Recycling</span>
+                            <div class="input-stepper recycling-input-stepper" id="recycling-stepper">
+                                <span># Bins</span>
                                 <button type="button" class="decrement">-</button>
                                 <input type="number" id="recycling-quantity" value="0" min="0" max="5">
                                 <button type="button" class="increment">+</button>
                             </div>
-                            <div class="frequency-select hidden">
-                                <span>Recycling</span>
-                                <select id="recycling-bin-frequency">
-                                    <option value="none">None</option>
+                        </div>
+                        <div id="compost-container" class="bin-container-type">
+                            <div class="frequency-select">
+                                <span>Compost Pickup Frequency</span>
+                                <select id="compost-bin-frequency">
+                                    <option value="none">No compost service</option>
                                     <option value="Weekly">Weekly</option>
                                     <option value="Bi-weekly">Bi-weekly</option>
                                     <option value="Monthly">Monthly</option>
                                 </select>
                             </div>
-                        </div>
-                        <div id="compost-container">
-                            <div class="input-stepper" id="compost-stepper">
-                                <span>Compost</span>
+                            <div class="input-stepper compost-input-stepper" id="compost-stepper">
+                                <span># Bins</span>
                                 <button type="button" class="decrement">-</button>
                                 <input type="number" id="compost-quantity" value="0" min="0" max="5">
                                 <button type="button" class="increment">+</button>
                             </div>
-<<<<<<< HEAD
 =======
                         <div class="form-group">
                             <label for="trash-frequency">Trash Pickup Frequency</label>
@@ -401,17 +350,6 @@
                             <input type="number" id="compost-quantity" value="0" min="0" max="5">
                             <button type="button" class="increment">+</button>
 >>>>>>> parent of cb077fe (Signup form usability improvements)
-=======
-                            <div class="frequency-select hidden">
-                                <span>Compost</span>
-                                <select id="compost-bin-frequency">
-                                    <option value="none">None</option>
-                                    <option value="Weekly">Weekly</option>
-                                    <option value="Bi-weekly">Bi-weekly</option>
-                                    <option value="Monthly">Monthly</option>
-                                </select>
-                            </div>
->>>>>>> parent of ad7107c (Form updates)
                         </div>
                     </div>
                     <div id="pricing" class="pricing-section">
@@ -458,7 +396,9 @@
           <button type="button" id="check-another-address" class="w-full secondary">Check Another Address</button>
         </div>
     </div>
-    <script src="service-details.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
+
+
 
