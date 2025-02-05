@@ -47,8 +47,9 @@ function calculatePrice(frequency, quantity) {
 function updateTotalPrice() {
     const trashFrequency = document.getElementById('trash-frequency').value;
     const recyclingFrequency = document.getElementById('recycling-frequency').value;
+    const trashFrequency = document.getElementById('trash-bin-frequency').value;
+    const recyclingFrequency = document.getElementById('recycling-bin-frequency').value;
     const compostFrequency = document.getElementById('compost-frequency')?.value || 'Weekly';
-    
     const trashQuantity = parseInt(document.getElementById('trash-quantity').value) - 1; // Subtract 1 for base price
     const recyclingQuantity = parseInt(document.getElementById('recycling-quantity').value);
     const compostQuantity = parseInt(document.getElementById('compost-quantity').value);
@@ -91,6 +92,22 @@ function handleFrequencyChange(binType) {
         stepper.classList.remove('hidden');
         frequencySelect.classList.add('hidden');
         if (quantity.value === '0') {
+    const binFrequency = document.getElementById(`${binType}-bin-frequency`);
+    
+    if (binFrequency && binFrequency.value === 'none') {
+        // Hide stepper when 'none' is selected
+        stepper?.classList.add('hidden');
+        if (binType === 'trash') {
+            // For trash, set quantity to 0 when no service is selected
+            const quantity = document.getElementById(`${binType}-quantity`);
+            if (quantity) quantity.value = '0';
+        }
+    } else {
+        // Show stepper for any other frequency
+        stepper?.classList.remove('hidden');
+        // Initialize quantity to 1 if it was 0
+        const quantity = document.getElementById(`${binType}-quantity`);
+        if (quantity && quantity.value === '0') {
             quantity.value = '1';
         }
     }
@@ -99,6 +116,18 @@ function handleFrequencyChange(binType) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize frequency change handlers with a delay
+    setTimeout(() => {
+        ['trash', 'recycling', 'compost'].forEach(binType => {
+            const binFrequency = document.getElementById(`${binType}-bin-frequency`);
+            if (binFrequency) {
+                binFrequency.addEventListener('change', () => handleFrequencyChange(binType));
+                // Initialize visibility state
+                handleFrequencyChange(binType);
+            }
+        });
+    }, 500); // Add a 500ms delay to allow other initialization to complete
+
     let originalServiceInfo = null;
     // Initialize all steppers
     const steppers = document.querySelectorAll('.input-stepper');
@@ -155,6 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 
                 // Show the service info display
+            //  Show the service info display
                 const serviceInfoDisplay = document.getElementById('service-info-display');
                 if (serviceInfoDisplay) {
                     serviceInfoDisplay.innerHTML = `
@@ -178,6 +208,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('service-day').value = info.pickupDay;
                 document.getElementById('trash-frequency').value = info.trashFrequency;
                 document.getElementById('recycling-frequency').value = info.recycleFrequency;
+                document.getElementById('trash-bin-frequency').value = info.trashFrequency;
+                document.getElementById('recycling-bin-frequency').value = info.recycleFrequency;
             };
             
             // Initial display update
@@ -191,6 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const editButton = document.getElementById('edit-service-info');
             const serviceInfoDisplay = document.getElementById('service-info-display');
             const serviceInfoForm = document.getElementById('service-info-form');
+            const serviceInfoForm = document.getElementById('bin-quantities');
             
             if (editButton && serviceInfoDisplay && serviceInfoForm) {
                 editButton.addEventListener('click', () => {
@@ -215,6 +248,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 pickupDay: document.getElementById('service-day').value,
                                 trashFrequency: document.getElementById('trash-frequency').value,
                                 recycleFrequency: document.getElementById('recycling-frequency').value
+                                trashFrequency: document.getElementById('trash-bin-frequency').value,
+                                recycleFrequency: document.getElementById('recycling-bin-frequency').value
                             };
                             
                             // Update the display and storage

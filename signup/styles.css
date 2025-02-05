@@ -150,7 +150,7 @@ button.secondary:hover {
 }
 
 .hidden {
-  display: none;
+  display: none !important;
 }
 
 .service-info-section, #service-info-form {
@@ -186,19 +186,15 @@ button.secondary:hover {
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 0.75rem;
+  /* padding: 0.75rem; */
   background-color: hsl(var(--card));
-  border: 1px solid hsl(var(--border));
+  /* border: 1px solid hsl(var(--border)); */
   border-radius: var(--radius);
-<<<<<<< Updated upstream
   margin-bottom: 1rem;
-=======
   /* margin-bottom: 1rem; */
   text-align: right;
   margin-bottom: 1rem;
   margin-bottom: 1rem;
-  /* margin-bottom: 1rem; */
->>>>>>> Stashed changes
 }
 
 .input-stepper span {
@@ -243,8 +239,9 @@ button.secondary:hover {
   cursor: not-allowed;
 }
 
-.frequency-select {
-  display: flex;
+.service-container {
+  display: flex
+;
   align-items: center;
   gap: 1rem;
   padding: 0.75rem;
@@ -252,6 +249,19 @@ button.secondary:hover {
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
   margin-bottom: 1rem;
+  justify-content: space-between;
+}
+
+.frequency-select {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  /* padding: 0.75rem; */
+  background-color: hsl(var(--card));
+  /* border: 1px solid hsl(var(--border)); */
+  border-radius: var(--radius);
+  /* margin-bottom: 1rem; */
+  width: 100%;
 }
 
 .frequency-select span {
@@ -290,8 +300,18 @@ button.secondary:hover {
 }
 
 @media (max-width: 640px) {
-  body {
-    padding: 16px;
+
+  .service-container {
+    flex-direction: column;
+  }
+
+  .input-stepper {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .rl_navbar1_container {
+    justify-content: space-evenly;
   }
 
   .card {
