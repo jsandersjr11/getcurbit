@@ -1,29 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // Function to handle frequency change and toggle input stepper visibility
-  function handleFrequencyChange(binType) {
-    const frequencySelect = document.getElementById(`${binType}-bin-frequency`);
-    const container = document.getElementById(`${binType}-container`);
-    const stepper = container.querySelector(`${binType}-input-stepper`);
-    
-    if (frequencySelect) {
-      if (frequencySelect.value === 'none') {
-        stepper.classList.add('hidden');
-      } else {
-        stepper.classList.remove('hidden');
-      }
-    }
-  }
-
-  // Add event listeners for frequency changes
-  ['trash', 'recycling', 'compost'].forEach(binType => {
-    const frequencySelect = document.getElementById(`${binType}-bin-frequency`);
-    if (frequencySelect) {
-      frequencySelect.addEventListener('change', () => handleFrequencyChange(binType));
-      // Initialize visibility state
-      handleFrequencyChange(binType);
-    }
-  });
-
   const addressForm = document.getElementById("address-form")
   const addressCheck = document.getElementById("address-check")
   const serviceInfoSection = document.getElementById("service-info")

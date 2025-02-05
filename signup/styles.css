@@ -176,11 +176,15 @@ button.secondary:hover {
   background-color: hsl(var(--card));
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
+<<<<<<< HEAD
   /* margin-bottom: 1rem; */
   text-align: right;
 =======
   margin-bottom: 1rem;
 >>>>>>> parent of cb077fe (Signup form usability improvements)
+=======
+  margin-bottom: 1rem;
+>>>>>>> parent of ad7107c (Form updates)
 }
 
 .input-stepper span {
@@ -226,17 +230,10 @@ button.secondary:hover {
   align-items: center;
   gap: 1rem;
   padding: 0.75rem;
-}
-
-.input-stepper {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem;
   background-color: hsl(var(--card));
-  /* border: 1px solid hsl(var(--border));
+  border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
-  margin-bottom: 1rem; */
+  margin-bottom: 1rem;
 }
 
 .frequency-select span {
@@ -255,17 +252,6 @@ button.secondary:hover {
   color: hsl(var(--secondary-foreground));
   border: 1px solid hsl(var(--border));
 >>>>>>> parent of cb077fe (Signup form usability improvements)
-}
-
-.bin-container-type {
-  display: flex;
-  align-items: stretch;
-  padding: 0.75rem;
-  background-color: hsl(var(--card));
-  border: 1px solid hsl(var(--border));
-  border-radius: var(--radius);
-  margin-bottom: 1rem;
-  flex-direction: column;
 }
 
 .button-group {
