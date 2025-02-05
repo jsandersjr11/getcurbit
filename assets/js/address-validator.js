@@ -1,78 +1,79 @@
 class AddressValidator {
     constructor() {
-        // Initialize Radar with your publishable API key
-        this.RADAR_API_KEY = 'prj_live_pk_1a18f69016c9f260317865b80bb5aaf3aa511b47';
-        this.SEARCH_RADIUS = 10000; // Search radius in meters
+        this.validZipCodes = [];
+        this.initialized = false;
+        this.loadZipCodes();
     }
 
-    // Geocode address and check if it's within service area using Radar
-    async isAddressInServiceArea(address) {
+    // Load ZIP codes from CSV file
+    async loadZipCodes() {
         try {
-            // First, geocode the address using Radar's API
-            const geocodeResponse = await fetch(`https://api.radar.io/v1/geocode/forward?query=${encodeURIComponent(address)}`, {
-                headers: {
-                    'Authorization': this.RADAR_API_KEY
-                }
-            });
-            
-            const geocodeData = await geocodeResponse.json();
-            if (!geocodeData.addresses || geocodeData.addresses.length === 0) {
-                throw new Error('Address not found');
-            }
-
-            const location = geocodeData.addresses[0];
-            
-            // Now search for geofences at this location
-            const searchResponse = await fetch(`https://api.radar.io/v1/search/geofences?near=${location.latitude},${location.longitude}&radius=${this.SEARCH_RADIUS}`, {
-                headers: {
-                    'Authorization': this.RADAR_API_KEY
-                }
-            });
-
-            const searchData = await searchResponse.json();
-            
-            // If any geofences are found, the address is in the service area
-            if (searchData.geofences && searchData.geofences.length > 0) {
-                // Get the first geofence's metadata
-                const serviceInfo = searchData.geofences[0].metadata;
-                return {
-                    isValid: true,
-                    serviceInfo: {
-                        pickupDay: serviceInfo.pickupday,
-                        trashFrequency: serviceInfo.trashfrequency,
-                        recycleFrequency: serviceInfo.recyclefrequency
-                    }
-                };
-            }
-            
-            return {
-                isValid: false,
-                serviceInfo: null
-            };
+            const response = await fetch('./assets/data/valid-zipcodes.csv');
+            const csvText = await response.text();
+            this.validZipCodes = csvText
+                .split('\n')
+                .map(line => line.trim())
+                .filter(line => line.length > 0);
+            console.log('Loaded ZIP codes:', this.validZipCodes);
+            this.initialized = true;
         } catch (error) {
-            console.error('Error checking service area:', error);
-            throw error;
+            console.error('Error loading ZIP codes:', error);
+            this.validZipCodes = ['84005'];
+            this.initialized = true;
         }
     }
 
+    // Wait for initialization
+    async waitForInit() {
+        if (!this.initialized) {
+            await new Promise(resolve => {
+                const checkInit = () => {
+                    if (this.initialized) {
+                        resolve();
+                    } else {
+                        setTimeout(checkInit, 100);
+                    }
+                };
+                checkInit();
+            });
+        }
+    }
+
+    // Extract ZIP code from address string
+    extractZipCode(address) {
+        // Look for ZIP code pattern that matches US format
+        const zipMatch = address.match(/\b\d{5}(?:-\d{4})?\b/);
+        const zip = zipMatch ? zipMatch[0].substring(0, 5) : null; // Take first 5 digits only
+        console.log('Input address:', address);
+        console.log('Extracted ZIP code:', zip);
+        return zip;
+    }
+
     // Validate full address and handle redirect
-    async validateAddress(addressString) {
+    validateAddress(addressString) {
         try {
             // Basic validation
             if (!addressString || addressString.trim().length < 5) {
                 throw new Error('Please enter a valid address');
             }
 
-            // Check if address is in service area using Radar
-            const isInServiceArea = await this.isAddressInServiceArea(addressString);
+            // Extract ZIP code
+            const zipCode = this.extractZipCode(addressString);
+            console.log('Validating ZIP code:', zipCode);
+            console.log('Valid ZIP codes array:', this.validZipCodes);
+            console.log('Is ZIP code included?', this.validZipCodes.includes(zipCode));
 
-            const serviceAreaCheck = await this.isAddressInServiceArea(addressString);
-            
+            if (!zipCode) {
+                throw new Error('No valid ZIP code found in address');
+            }
+
+            // Check if ZIP code is in service area
+            const isValidZip = this.validZipCodes.includes(zipCode);
+
             return {
-                isValid: serviceAreaCheck.isValid,
-                message: serviceAreaCheck.isValid ? 'Great news! We service your area.' : 'Sorry, we don\'t service your area yet.',
-                address: addressString,
-                serviceInfo: serviceAreaCheck.serviceInfo
+                isValid: isValidZip,
+                message: isValidZip ? 'Great news! We service your area.' : 'Sorry, we don\'t service your area yet.',
+                zipCode
             };
         } catch (error) {
             return {
@@ -127,14 +128,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         submitButton.disabled = true;
 
         try {
-
+            await validator.waitForInit();
             const addressToValidate = addressInput?.value;
             
             if (!addressToValidate) {
                 throw new Error('Please enter an address');
             }
 
-            const result = await validator.validateAddress(addressToValidate);
+            const result = validator.validateAddress(addressToValidate);
 
             if (result.error) {
                 // Show error in form
@@ -186,30 +187,30 @@ document.addEventListener('DOMContentLoaded', async () => {
                 loadingSpinner.remove();
 
                 if (result.isValid) {
-                    // Redirect to service details page
-                    window.location.href = '/signup/service-details.html';
-                    
-                    // Store service info in sessionStorage for the details page
-                    sessionStorage.setItem('serviceInfo', JSON.stringify(result.serviceInfo));
-                    
-                    // If we're already on the service details page, populate the form
-                    if (window.location.pathname.includes('service-details.html')) {
-                        const serviceForm = document.getElementById('service-form');
-                        if (serviceForm) {
-                            document.getElementById('service-day').value = result.serviceInfo.pickupDay;
-                            document.getElementById('trash-frequency').value = result.serviceInfo.trashFrequency;
-                            document.getElementById('recycling-frequency').value = result.serviceInfo.recycleFrequency;
-                        }
-                    }
-                        // </div>
-                        // <stripe-pricing-table 
-                        //     pricing-table-id="prctbl_1QNaV0GwVRYqqGA78wH32vEu"
-                        //     publishable-key="pk_live_51PhSkTGwVRYqqGA7KZ1MyQdPAkVQEjogtTdf7HU1HaD0VC39103UpCX2oKw4TQWQB17QL41ql2DHmprq1CxozbMa00bWPEYCoa"
-                        //     client-reference-id="${result.zipCode}"
-                        //     customer-email=""
-                        //     customer-address="${addressToValidate}">
-                        // </stripe-pricing-table>
-                    // `;
+                    // Create new container for Stripe pricing
+                    const stripePricingContainer = document.createElement('div');
+                    stripePricingContainer.id = 'stripe-pricing-container';
+                    stripePricingContainer.innerHTML = `
+                        <div class="validated-address-wrapper" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                            <div class="rl-heading-style-h6-3 validated-address">${addressToValidate}</div>
+                            <button type="button" 
+                                    class="edit-address-btn" 
+                                    style="background: none; border: none; cursor: pointer; padding: 8px;"
+                                    aria-label="Edit address">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <stripe-pricing-table 
+                            pricing-table-id="prctbl_1QNaV0GwVRYqqGA78wH32vEu"
+                            publishable-key="pk_live_51PhSkTGwVRYqqGA7KZ1MyQdPAkVQEjogtTdf7HU1HaD0VC39103UpCX2oKw4TQWQB17QL41ql2DHmprq1CxozbMa00bWPEYCoa"
+                            client-reference-id="${result.zipCode}"
+                            customer-email=""
+                            customer-address="${addressToValidate}">
+                        </stripe-pricing-table>
+                    `;
 
                     // Insert the Stripe container after the form content
                     formContent.parentNode.insertBefore(stripePricingContainer, formContent.nextSibling);
