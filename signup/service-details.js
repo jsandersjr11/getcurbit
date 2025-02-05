@@ -96,7 +96,165 @@ function handleFrequencyChange(binType) {
     updateTotalPrice();
 }
 
+// Calendar functionality
+class Calendar {
+    constructor() {
+        this.today = new Date();
+        this.currentDate = new Date();
+        this.selectedDate = null;
+        this.minDate = new Date();
+        this.minDate.setDate(this.minDate.getDate() + 14); // Two weeks from today
+
+        // Get service day from sessionStorage
+        const serviceInfo = JSON.parse(sessionStorage.getItem('serviceInfo'));
+        this.serviceDay = serviceInfo?.pickupDay || 'Monday';
+        
+        // Set default date to next service day that's at least 1.5 weeks out
+        this.setDefaultDate();
+
+        // Elements
+        this.trigger = document.getElementById('calendar-trigger');
+        this.dropdown = document.getElementById('calendar-dropdown');
+        this.currentMonthElement = this.dropdown.querySelector('.current-month');
+        this.datesContainer = document.getElementById('calendar-dates');
+        this.selectedDateElement = document.getElementById('selected-date');
+        this.hiddenInput = document.getElementById('service-start-date');
+
+        // Bind event listeners
+        this.trigger.addEventListener('click', () => this.toggleDropdown());
+        this.dropdown.querySelector('.prev-month').addEventListener('click', () => this.prevMonth());
+        this.dropdown.querySelector('.next-month').addEventListener('click', () => this.nextMonth());
+        document.addEventListener('click', (e) => this.handleClickOutside(e));
+
+        // Initial render
+        this.render();
+        
+        // Set initial selection
+        if (this.selectedDate) {
+            this.selectDate(this.selectedDate);
+        }
+    }
+
+    toggleDropdown() {
+        this.dropdown.classList.toggle('hidden');
+    }
+
+    handleClickOutside(e) {
+        if (!this.dropdown.contains(e.target) && !this.trigger.contains(e.target)) {
+            this.dropdown.classList.add('hidden');
+        }
+    }
+
+    formatDate(date) {
+        const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        return `${months[date.getMonth()]} ${date.getFullYear()}`;
+    }
+
+    setDefaultDate() {
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const serviceDayIndex = days.indexOf(this.serviceDay);
+        
+        // Start with today + 14 days (2 weeks)
+        let targetDate = new Date();
+        targetDate.setDate(targetDate.getDate() + 14);
+        
+        // Find the next service day after the 1.5 week mark
+        while (targetDate.getDay() !== serviceDayIndex) {
+            targetDate.setDate(targetDate.getDate() + 1);
+        }
+        
+        this.selectedDate = targetDate;
+        this.currentDate = new Date(targetDate); // Set current month to show selected date
+    }
+
+    isDisabled(date) {
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        return date < this.minDate || days[date.getDay()] !== this.serviceDay;
+    }
+
+    selectDate(date) {
+        if (this.isDisabled(date)) return;
+        
+        this.selectedDate = date;
+        this.hiddenInput.value = date.toISOString().split('T')[0];
+        this.selectedDateElement.textContent = date.toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        this.render();
+        this.dropdown.classList.add('hidden');
+    }
+
+    prevMonth() {
+        this.currentDate.setMonth(this.currentDate.getMonth() - 1);
+        this.render();
+    }
+
+    nextMonth() {
+        this.currentDate.setMonth(this.currentDate.getMonth() + 1);
+        this.render();
+    }
+
+    render() {
+        // Update header
+        this.currentMonthElement.textContent = this.formatDate(this.currentDate);
+
+        // Clear dates
+        this.datesContainer.innerHTML = '';
+
+        // Get first day of month and total days
+        const firstDay = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), 1);
+        const lastDay = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() + 1, 0);
+
+        // Add empty cells for days before first day of month
+        for (let i = 0; i < firstDay.getDay(); i++) {
+            const emptyCell = document.createElement('div');
+            this.datesContainer.appendChild(emptyCell);
+        }
+
+        // Add days of month
+        for (let date = 1; date <= lastDay.getDate(); date++) {
+            const dayElement = document.createElement('div');
+            dayElement.classList.add('calendar-date');
+            dayElement.textContent = date;
+
+            const currentDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), date);
+
+            if (this.isDisabled(currentDate)) {
+                dayElement.classList.add('disabled');
+            } else {
+                dayElement.addEventListener('click', () => this.selectDate(currentDate));
+            }
+
+            if (this.selectedDate && currentDate.toDateString() === this.selectedDate.toDateString()) {
+                dayElement.classList.add('selected');
+            }
+
+            if (currentDate.toDateString() === this.today.toDateString()) {
+                dayElement.classList.add('today');
+            }
+
+            this.datesContainer.appendChild(dayElement);
+        }
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+    // Display checked address
+    const addressData = JSON.parse(localStorage.getItem('addressData'));
+    if (addressData?.address) {
+        const checkedAddressElement = document.getElementById('checked-address');
+        if (checkedAddressElement) {
+            checkedAddressElement.textContent = addressData.address;
+        }
+    }
+
+    // Initialize calendar
+    new Calendar();
+
+
     // Initialize frequency change handlers with a delay
     setTimeout(() => {
         ['trash', 'recycling', 'compost'].forEach(binType => {
@@ -161,7 +319,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Update the service area message
                 const message = document.getElementById('service-area-message');
                 if (message) {
-                    message.textContent = `Your pickup day is ${info.pickupDay}. Trash pickup is ${info.trashFrequency.toLowerCase()}, and recycling is ${info.recycleFrequency.toLowerCase()}.`;
+                    message.textContent = `Set up your can-to-curb service below. Your pickup day is ${info.pickupDay}. Trash pickup is ${info.trashFrequency.toLowerCase()}, and recycling is ${info.recycleFrequency.toLowerCase()}.`;
                 }
                 
             //  Show the service info display
@@ -186,6 +344,19 @@ document.addEventListener('DOMContentLoaded', () => {
             // Function to update form fields
             const updateFormFields = (info) => {
                 document.getElementById('service-day').value = info.pickupDay;
+                // Set the service start date to the next occurrence of the pickup day
+                const startDate = document.getElementById('service-start-date');
+                if (startDate) {
+                    const today = new Date();
+                    // Set minimum date to tomorrow
+                    const tomorrow = new Date(today);
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    startDate.min = tomorrow.toISOString().split('T')[0];
+                    // Set initial value to tomorrow if not already set
+                    if (!startDate.value) {
+                        startDate.value = tomorrow.toISOString().split('T')[0];
+                    }
+                }
                 document.getElementById('trash-bin-frequency').value = info.trashFrequency;
                 document.getElementById('recycling-bin-frequency').value = info.recycleFrequency;
             };

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trash to Curb Service</title>
+    <title>Great news! We service your address.</title>
     <link rel="stylesheet" href="styles.css">
 
      <!-- Stylesheets -->
@@ -201,7 +201,15 @@
     <div class="container mx-auto p-4">
         <div id="service-info" class="card">
           <div class="mb-4">
-            <h2 class="text-2xl font-bold">Trash to Curb Service</h2>
+            <h2 class="text-2xl"><span class="font-bold">Great news!</span> We service your address.</h2>
+            <div id="checked-address-container" class="service-container">
+                <div class="frequency-select">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8.835 14H5C4.79653 14.0111 4.60131 14.0841 4.44046 14.2092C4.27962 14.3343 4.16083 14.5055 4.1 14.7L2.1 20.7C2 20.8 2 20.9 2 21C2 21.6 2.4 22 3 22H21C21.6 22 22 21.6 22 21C22 20.9 22 20.8 21.9 20.7L19.9 14.7C19.8392 14.5055 19.7204 14.3343 19.5595 14.2092C19.3987 14.0841 19.2035 14.0111 19 14H15.165M18 8C18 12.5 12 17 12 17C12 17 6 12.5 6 8C6 6.4087 6.63214 4.88258 7.75736 3.75736C8.88258 2.63214 10.4087 2 12 2C13.5913 2 15.1174 2.63214 16.2426 3.75736C17.3679 4.88258 18 6.4087 18 8ZM14 8C14 9.10457 13.1046 10 12 10C10.8954 10 10 9.10457 10 8C10 6.89543 10.8954 6 12 6C13.1046 6 14 6.89543 14 8Z" stroke="#18181B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                    </svg>
+                    <span id="checked-address" class="font-medium"></span>
+                </div>
+            </div>
             <p id="service-area-message" class="text-muted-foreground"></p>
           </div>
           <form id="service-form" class="space-y-6">
@@ -274,6 +282,7 @@
                         <label for="trash-container">Select Your Bins</label>
                         <div id="trash-container" class="service-container">
                             <div class="frequency-select">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash mr-2 h-4 w-4"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
                                 <span>Trash Pickup Frequency</span>
                                 <select id="trash-bin-frequency">
                                     <option value="none">No trash service</option>
@@ -291,6 +300,7 @@
                         </div>
                         <div id="recycling-container" class="service-container">
                             <div class="frequency-select">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-recycle mr-2 h-4 w-4"><path d="M7 19H4.815a1.83 1.83 0 0 1-1.57-.881 1.785 1.785 0 0 1-.004-1.784L7.196 9.5"></path><path d="M11 19h8.203a1.83 1.83 0 0 0 1.556-.89 1.784 1.784 0 0 0 0-1.775l-1.226-2.12"></path><path d="m14 16-3 3 3 3"></path><path d="M8.293 13.596 7.196 9.5 3.1 10.598"></path><path d="m9.344 5.811 1.093-1.892A1.83 1.83 0 0 1 11.985 3a1.784 1.784 0 0 1 1.546.888l3.943 6.843"></path><path d="m13.378 9.633 4.096 1.098 1.097-4.096"></path></svg>
                                 <span>Recycling Pickup Frequency</span>
                                 <select id="recycling-bin-frequency">
                                     <option value="none">No recycling service</option>
@@ -308,6 +318,7 @@
                         </div>
                         <div id="compost-container" class="service-container">
                             <div class="frequency-select">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-leaf mr-2 h-4 w-4"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path></svg>
                                 <span>Compost Pickup Frequency</span>
                                 <select id="compost-bin-frequency">
                                     <option value="none">No compost service</option>
@@ -322,6 +333,40 @@
                                 <input type="number" id="compost-quantity" value="0" min="0" max="5">
                                 <button type="button" class="increment">+</button>
                             </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Service Start Date</label> 
+                            <div class="calendar-wrapper">
+                                <div class="calendar-input" id="calendar-trigger">
+                                    <span id="selected-date">Select a date</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                </div>
+                                <div class="calendar-dropdown hidden" id="calendar-dropdown">
+                                    <div class="calendar-header">
+                                        <button type="button" class="prev-month" aria-label="Previous month">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                                        </button>
+                                        <span class="current-month">February 2025</span>
+                                        <button type="button" class="next-month" aria-label="Next month">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                                        </button>
+                                    </div>
+                                    <div class="calendar-grid">
+                                        <div class="calendar-days">
+                                            <span>Su</span>
+                                            <span>Mo</span>
+                                            <span>Tu</span>
+                                            <span>We</span>
+                                            <span>Th</span>
+                                            <span>Fr</span>
+                                            <span>Sa</span>
+                                        </div>
+                                        <div class="calendar-dates" id="calendar-dates"></div>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="service-start-date" required>
+                            </div>
+                            <p class="text-sm text-muted-foreground mt-2">* Service start dates must be at least 2 weeks out to allow for bin delivery and route scheduling.</p>
                         </div>
                     </div>
                     <div id="pricing" class="pricing-section">
