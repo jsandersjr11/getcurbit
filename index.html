@@ -531,13 +531,17 @@
                     <form id="wf-form-Address-form" name="wf-form-Address-form" data-name="Address form" method="get" class="form">
                       <div class="address-input-wrapper">
                         <input type="text" 
-                               id="address-input" 
-                               name="address"
-                               placeholder="Enter an address" 
-                               class="form-control text-field w-input"
-                               autocomplete="street-address"
-                               aria-label="Street address"
-                               inputmode="text">
+                            id="address-input" 
+                            name="address"
+                            placeholder="Enter an address" 
+                            class="form-control text-field w-input"
+                            autocomplete="off"
+                            autocorrect="off"
+                            autocapitalize="off"
+                            spellcheck="false"
+                            data-form-type="other"
+                            aria-label="Street address"
+                            inputmode="text">
                         <input type="hidden" id="full-address" name="full-address">
                         <div id="address-suggestions" class="suggestions-dropdown"></div>
                       </div>
