@@ -166,6 +166,7 @@
  
          gtag('config', 'G-LYNVTT62LV');
      </script>
+    <script src="https://js.stripe.com/v3/"></script>
 </head>
 <body>
     <!-- Navigation -->
@@ -376,7 +377,11 @@
                         Base price: $39/month for one bin. Additional bins: + $10/month each (Weekly collection). + $5/month each (Bi-weekly collection). + $2.50/month (Monthly collection)
                       </p>
                     </div>
-                    <button type="submit">Sign Up for Can-to-Curb Service</button>
+                    <button type="submit" id="checkout-button" class="primary-button">
+    <span class="button-text">Sign Up for Can-to-Curb Service</span>
+    <span class="button-loading hidden">Processing...</span>
+</button>
+<button type="button" id="return-to-form" class="secondary-button hidden">Return to Form</button>
                 </div>
                 <div id="reminder-section" class="hidden space-y-4">
                     <h3>Optional: Pickup Reminders</h3>

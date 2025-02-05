@@ -241,7 +241,101 @@ class Calendar {
     }
 }
 
+// Load Stripe.js
+const stripe = Stripe('pk_live_51PhSkTGwVRYqqGA7KZ1MyQdPAkVQEjogtTdf7HU1HaD0VC39103UpCX2oKw4TQWQB17QL41ql2DHmprq1CxozbMa00bWPEYCoa');
+
+// Function to handle checkout
+async function handleCheckout(event) {
+    console.log('Checkout process started...');
+    event.preventDefault();
+    
+    const checkoutButton = document.getElementById('checkout-button');
+    const buttonText = checkoutButton.querySelector('.button-text');
+    const buttonLoading = checkoutButton.querySelector('.button-loading');
+    const returnButton = document.getElementById('return-to-form');
+    
+    // Show loading state
+    buttonText.classList.add('hidden');
+    buttonLoading.classList.remove('hidden');
+    checkoutButton.disabled = true;
+    
+    // Get selected frequency
+    const frequency = document.getElementById('compost-bin-frequency').value;
+    const quantity = parseInt(document.getElementById('compost-quantity').value);
+    
+    try {
+        console.log('Selected frequency:', frequency);
+        console.log('Selected quantity:', quantity);
+        // Create line items array for Stripe Checkout
+        console.log('Creating line items...');
+        const lineItems = [
+            // Base fee (required for all orders)
+            {
+                price: 'price_1QpGMMGwVRYqqGA7PVf4W6Cs',
+                quantity: 1
+            }
+        ];
+        
+        // Add frequency-based price if selected
+        if (frequency !== 'none' && quantity > 0) {
+            const priceIds = {
+                'Weekly': 'price_1QpGGFGwVRYqqGA7bIZzq2YO',
+                'Bi-weekly': 'price_1QpGHnGwVRYqqGA7xaHggXK9',
+                'Monthly': 'price_1QpGKBGwVRYqqGA7FwEBrz8k'
+            };
+            
+            lineItems.push({
+                price: priceIds[frequency],
+                quantity: quantity
+            });
+        }
+
+        console.log('Line items prepared:', lineItems);
+        console.log('Redirecting to Stripe Checkout...');
+        // Redirect to Stripe Checkout
+        const result = await stripe.redirectToCheckout({
+            mode: 'subscription',
+            lineItems: lineItems,
+            successUrl: window.location.origin + '/signup/success.html',
+            cancelUrl: window.location.href,
+        });
+
+        if (result.error) {
+            console.error('Error:', result.error);
+            alert('There was an error processing your payment. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('There was an error processing your payment. Please try again.');
+    } finally {
+        // Reset button state
+        buttonText.classList.remove('hidden');
+        buttonLoading.classList.add('hidden');
+        checkoutButton.disabled = false;
+        returnButton.classList.remove('hidden');
+    }
+}
+
+// Function to handle return to form
+function handleReturnToForm() {
+    const returnButton = document.getElementById('return-to-form');
+    returnButton.classList.add('hidden');
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+    // Set up checkout button handler
+    const checkoutButton = document.getElementById('checkout-button');
+    const returnButton = document.getElementById('return-to-form');
+    
+    if (checkoutButton) {
+        const form = checkoutButton.closest('form');
+        form.addEventListener('submit', handleCheckout);
+    }
+    
+    if (returnButton) {
+        returnButton.addEventListener('click', handleReturnToForm);
+    }
+    
     // Display checked address
     const addressData = JSON.parse(localStorage.getItem('addressData'));
     if (addressData?.address) {
