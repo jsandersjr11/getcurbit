@@ -221,7 +221,6 @@
           <form id="service-form" class="space-y-6">
 <<<<<<< HEAD
                 <div id="service-details" class="space-y-6">
-<<<<<<< Updated upstream
 <<<<<<< HEAD
                     <div id="bin-quantities" class="space-y-4">
                         <h3 class="text-lg font-semibold">Your Service Information</h3>
@@ -230,9 +229,6 @@
 =======
 >>>>>>> parent of ad7107c (Form updates)
                   <div class="service-info-section">
-=======
-                  <!-- <div class="service-info-section">
->>>>>>> Stashed changes
                     <div class="flex justify-between items-start mb-4">
                       <h3 class="text-lg font-semibold">Your Service Information</h3>
                       <button type="button" id="edit-service-info" class="secondary">Edit</button>
@@ -300,82 +296,57 @@
                                 <option value="Monthly">Monthly</option>
                             </select>
                         </div>
-                        <div class="button-group">
+                        <!-- <div class="button-group">
                             <button type="button" id="cancel-edit">Cancel</button>
                             <button type="button" id="save-changes">Save Changes</button>
-                        </div>
+                        </div> -->
                     </div>
-                  </div> -->
+                  </div>
                     
                     <div id="bin-quantities" class="space-y-4">
-                        <div class="form-group">
-                            <label for="service-day">Service Day</label>
-                            <select id="service-day" required>
-                                <option value="">Select service day</option>
-                                <option value="Monday">Monday</option>
-                                <option value="Tuesday">Tuesday</option>
-                                <option value="Wednesday">Wednesday</option>
-                                <option value="Thursday">Thursday</option>
-                                <option value="Friday">Friday</option>
-                            </select>
-                        </div>
-                        <label for="trash-container">Select Your Bins</label>
-                        <div id="trash-container" class="service-container">
-                            <div class="frequency-select">
-                                <span>Trash Pickup Frequency</span>
-                                <select id="trash-bin-frequency">
-                                    <option value="none">No trash service</option>
-                                    <option value="Weekly">Weekly</option>
-                                    <option value="Bi-weekly">Bi-weekly</option>
-                                    <option value="Monthly">Monthly</option>
-                                </select>
-                            </div>
+                        <h3 class="text-lg font-semibold">Select Your Bins</h3>
+                        <div id="trash-container">
                             <div class="input-stepper">
-<<<<<<< Updated upstream
                                 <span>Trash</span>
 >>>>>>> parent of ad7107c (Form updates)
-=======
-                                <!-- <span># of Trash Bins</span> -->
->>>>>>> Stashed changes
                                 <button type="button" class="decrement">-</button>
                                 <input type="number" id="trash-quantity" value="1" min="1" max="5">
                                 <button type="button" class="increment">+</button>
                             </div>
-                        </div>
-                        <div id="recycling-container" class="service-container">
-                            <div class="frequency-select">
-                                <span>Recycling Pickup Frequency</span>
-                                <select id="recycling-bin-frequency">
-                                    <option value="none">No recycling service</option>
+                            <div class="frequency-select hidden">
+                                <span>Trash</span>
+                                <select id="trash-bin-frequency">
+                                    <option value="none">None</option>
                                     <option value="Weekly">Weekly</option>
                                     <option value="Bi-weekly">Bi-weekly</option>
                                     <option value="Monthly">Monthly</option>
                                 </select>
                             </div>
+                        </div>
+                        <div id="recycling-container">
                             <div class="input-stepper" id="recycling-stepper">
-                                <!-- <span># of Recycling Bins</span> -->
+                                <span>Recycling</span>
                                 <button type="button" class="decrement">-</button>
                                 <input type="number" id="recycling-quantity" value="0" min="0" max="5">
                                 <button type="button" class="increment">+</button>
                             </div>
-                        </div>
-                        <div id="compost-container" class="service-container">
-                            <div class="frequency-select">
-                                <span>Compost Pickup Frequency</span>
-                                <select id="compost-bin-frequency">
-                                    <option value="none">No compost service</option>
+                            <div class="frequency-select hidden">
+                                <span>Recycling</span>
+                                <select id="recycling-bin-frequency">
+                                    <option value="none">None</option>
                                     <option value="Weekly">Weekly</option>
                                     <option value="Bi-weekly">Bi-weekly</option>
                                     <option value="Monthly">Monthly</option>
                                 </select>
                             </div>
+                        </div>
+                        <div id="compost-container">
                             <div class="input-stepper" id="compost-stepper">
-                                <!-- <span># of Compost Bins</span> -->
+                                <span>Compost</span>
                                 <button type="button" class="decrement">-</button>
                                 <input type="number" id="compost-quantity" value="0" min="0" max="5">
                                 <button type="button" class="increment">+</button>
                             </div>
-<<<<<<< Updated upstream
 <<<<<<< HEAD
 =======
                         <div class="form-group">
@@ -441,15 +412,13 @@
                                 </select>
                             </div>
 >>>>>>> parent of ad7107c (Form updates)
-=======
->>>>>>> Stashed changes
                         </div>
                     </div>
                     <div id="pricing" class="pricing-section">
                       <h3 class="text-lg font-semibold mb-2">Pricing</h3>
                       <p id="total-price" class="font-semibold"></p>
                       <p class="text-sm text-muted-foreground mt-1">
-                        Base price: $39/month for one bin. Additional bins: + $10/month each (Weekly collection). + $5/month each (Bi-weekly collection). + $2.50/month (Monthly collection)
+                        Base price: $39/month for one can (weekly collection). Additional cans: $10/month each. Bi-weekly collection: 50% off. Monthly collection: 75% off.
                       </p>
                     </div>
                     <button type="submit">Sign Up for Can-to-Curb Service</button>
