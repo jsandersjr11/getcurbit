@@ -259,46 +259,107 @@ async function handleCheckout(event) {
     buttonLoading.classList.remove('hidden');
     checkoutButton.disabled = true;
     
-    // Get selected frequency
-    const frequency = document.getElementById('compost-bin-frequency').value;
-    const quantity = parseInt(document.getElementById('compost-quantity').value);
-    
     try {
-        console.log('Selected frequency:', frequency);
-        console.log('Selected quantity:', quantity);
         // Create line items array for Stripe Checkout
         console.log('Creating line items...');
-        const lineItems = [
-            // Base fee (required for all orders)
-            {
-                price: 'price_1QpGMMGwVRYqqGA7PVf4W6Cs',
-                quantity: 1
-            }
-        ];
+        const lineItems = [];
         
-        // Add frequency-based price if selected
-        if (frequency !== 'none' && quantity > 0) {
-            const priceIds = {
+        // Price IDs for different services and frequencies
+        const priceIds = {
+            trash: {
+                'Weekly': 'price_1QpGMMGwVRYqqGA7PVf4W6Cs',  // Base price includes first trash bin
+                'Bi-weekly': 'price_1QpGHnGwVRYqqGA7xaHggXK9',
+                'Monthly': 'price_1QpGKBGwVRYqqGA7FwEBrz8k'
+            },
+            recycling: {
                 'Weekly': 'price_1QpGGFGwVRYqqGA7bIZzq2YO',
                 'Bi-weekly': 'price_1QpGHnGwVRYqqGA7xaHggXK9',
                 'Monthly': 'price_1QpGKBGwVRYqqGA7FwEBrz8k'
-            };
-            
+            },
+            compost: {
+                'Weekly': 'price_1QpGGFGwVRYqqGA7bIZzq2YO',
+                'Bi-weekly': 'price_1QpGHnGwVRYqqGA7xaHggXK9',
+                'Monthly': 'price_1QpGKBGwVRYqqGA7FwEBrz8k'
+            }
+        };
+
+        // Handle trash bins (first bin is included in base price)
+        const trashFrequency = document.getElementById('trash-bin-frequency').value;
+        const trashQuantity = parseInt(document.getElementById('trash-quantity').value);
+        
+        if (trashFrequency !== 'none' && trashQuantity > 0) {
+            // Add base price for first trash bin
             lineItems.push({
-                price: priceIds[frequency],
-                quantity: quantity
+                price: priceIds.trash[trashFrequency],
+                quantity: 1
+            });
+            
+            // Add additional trash bins if any
+            if (trashQuantity > 1) {
+                lineItems.push({
+                    price: priceIds.trash[trashFrequency],
+                    quantity: trashQuantity - 1  // Subtract 1 for the base bin
+                });
+            }
+        }
+
+        // Handle recycling bins
+        const recyclingFrequency = document.getElementById('recycling-bin-frequency').value;
+        const recyclingQuantity = parseInt(document.getElementById('recycling-quantity').value);
+        
+        if (recyclingFrequency !== 'none' && recyclingQuantity > 0) {
+            lineItems.push({
+                price: priceIds.recycling[recyclingFrequency],
+                quantity: recyclingQuantity
+            });
+        }
+
+        // Handle compost bins
+        const compostFrequency = document.getElementById('compost-bin-frequency')?.value || 'none';
+        const compostQuantity = parseInt(document.getElementById('compost-quantity')?.value || '0');
+        
+        if (compostFrequency !== 'none' && compostQuantity > 0) {
+            lineItems.push({
+                price: priceIds.compost[compostFrequency],
+                quantity: compostQuantity
             });
         }
 
         console.log('Line items prepared:', lineItems);
         console.log('Redirecting to Stripe Checkout...');
-        // Redirect to Stripe Checkout
-        const result = await stripe.redirectToCheckout({
-            mode: 'subscription',
-            lineItems: lineItems,
-            successUrl: window.location.origin + '/signup/success.html',
-            cancelUrl: window.location.href,
-        });
+        
+        // Determine if we're in development or production
+        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        
+        // Define success and cancel URLs
+        const successUrl = isLocalhost
+            ? 'https://getcurbit.com/signup/success.html'  // Production success URL
+            : window.location.origin + '/signup/success.html';
+        const cancelUrl = isLocalhost
+            ? 'https://getcurbit.com/signup/service-details.html'  // Production cancel URL
+            : window.location.href;
+
+        try {
+            // Redirect to Stripe Checkout
+            const result = await stripe.redirectToCheckout({
+                mode: 'subscription',
+                lineItems: lineItems,
+                successUrl: successUrl,
+                cancelUrl: cancelUrl,
+            });
+
+            if (result.error) {
+                throw result.error;
+            }
+        } catch (checkoutError) {
+            console.error('Stripe Checkout Error:', checkoutError);
+            
+            if (checkoutError.message?.includes('domain') && isLocalhost) {
+                alert('Development Environment Notice: Please use the production URL (https://getcurbit.com) for Stripe Checkout. Local development domains are not supported for security reasons.');
+            } else {
+                alert('There was an error initiating checkout. Please try again or contact support if the issue persists.');
+            }
+        }
 
         if (result.error) {
             console.error('Error:', result.error);
@@ -326,6 +387,30 @@ document.addEventListener('DOMContentLoaded', () => {
     // Set up checkout button handler
     const checkoutButton = document.getElementById('checkout-button');
     const returnButton = document.getElementById('return-to-form');
+
+    // Handle reminder preferences
+    const wantRemindersCheckbox = document.getElementById('want-reminders');
+    const reminderOptions = document.getElementById('reminder-options');
+    const contactInput = document.getElementById('contact-info');
+    const reminderMethodInputs = document.querySelectorAll('input[name="reminder-method"]');
+
+    function updateContactInputRequired() {
+        const isVisible = !reminderOptions.classList.contains('hidden');
+        const selectedMethod = document.querySelector('input[name="reminder-method"]:checked').value;
+        contactInput.required = isVisible && selectedMethod === 'sms';
+        contactInput.type = selectedMethod === 'sms' ? 'tel' : 'email';
+        contactInput.placeholder = selectedMethod === 'sms' ? 'Enter phone number' : 'Enter email address';
+    }
+
+    wantRemindersCheckbox.addEventListener('change', () => {
+        reminderOptions.classList.toggle('hidden', !wantRemindersCheckbox.checked);
+        updateContactInputRequired();
+    });
+
+    reminderMethodInputs.forEach(input => {
+        input.addEventListener('change', updateContactInputRequired);
+    });
+
     
     if (checkoutButton) {
         const form = checkoutButton.closest('form');
