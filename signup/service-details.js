@@ -272,12 +272,12 @@ async function handleCheckout(event) {
                 'Monthly': 'price_1QpGKBGwVRYqqGA7FwEBrz8k'
             },
             recycling: {
-                'Weekly': 'price_1QpGGFGwVRYqqGA7bIZzq2YO',
+                'Weekly': 'price_1Qpdn2GwVRYqqGA7NESAS1nE',
                 'Bi-weekly': 'price_1QpGHnGwVRYqqGA7xaHggXK9',
                 'Monthly': 'price_1QpGKBGwVRYqqGA7FwEBrz8k'
             },
             compost: {
-                'Weekly': 'price_1QpGGFGwVRYqqGA7bIZzq2YO',
+                'Weekly': 'price_1Qpdn2GwVRYqqGA7NESAS1nE',
                 'Bi-weekly': 'price_1QpGHnGwVRYqqGA7xaHggXK9',
                 'Monthly': 'price_1QpGKBGwVRYqqGA7FwEBrz8k'
             }
