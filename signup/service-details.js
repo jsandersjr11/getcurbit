@@ -108,6 +108,8 @@ class Calendar {
         // Get service day from sessionStorage
         const serviceInfo = JSON.parse(sessionStorage.getItem('serviceInfo'));
         this.serviceDay = serviceInfo?.pickupDay || 'Monday';
+        this.recycleWeek = serviceInfo?.recycleWeek || 'none';
+        this.compostWeek = serviceInfo?.compostWeek || 'none';
         
         // Set default date to next service day that's at least 1.5 weeks out
         this.setDefaultDate();
@@ -264,10 +266,13 @@ async function handleCheckout(event) {
         console.log('Creating line items...');
         const lineItems = [];
         
+        // Base fee price ID (always included)
+        const BASE_FEE_PRICE_ID = 'price_1QOPCMGwVRYqqGA765aEnpBI';
+        
         // Price IDs for different services and frequencies
         const priceIds = {
             trash: {
-                'Weekly': 'price_1QpGMMGwVRYqqGA7PVf4W6Cs',  // Base price includes first trash bin
+                'Weekly': 'price_1QpGMMGwVRYqqGA7PVf4W6Cs',
                 'Bi-weekly': 'price_1QpGHnGwVRYqqGA7xaHggXK9',
                 'Monthly': 'price_1QpGKBGwVRYqqGA7FwEBrz8k'
             },
@@ -283,24 +288,22 @@ async function handleCheckout(event) {
             }
         };
 
-        // Handle trash bins (first bin is included in base price)
+        // Always add the base fee
+        lineItems.push({
+            price: BASE_FEE_PRICE_ID,
+            quantity: 1
+        });
+
+        // Handle trash bins
         const trashFrequency = document.getElementById('trash-bin-frequency').value;
         const trashQuantity = parseInt(document.getElementById('trash-quantity').value);
         
         if (trashFrequency !== 'none' && trashQuantity > 0) {
-            // Add base price for first trash bin
+            // Add all trash bins at the selected frequency
             lineItems.push({
                 price: priceIds.trash[trashFrequency],
-                quantity: 1
+                quantity: trashQuantity
             });
-            
-            // Add additional trash bins if any
-            if (trashQuantity > 1) {
-                lineItems.push({
-                    price: priceIds.trash[trashFrequency],
-                    quantity: trashQuantity - 1  // Subtract 1 for the base bin
-                });
-            }
         }
 
         // Handle recycling bins
@@ -498,13 +501,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Update the service area message
                 const message = document.getElementById('service-area-message');
                 if (message) {
-                    message.textContent = `Set up your can-to-curb service below. Your pickup day is ${info.pickupDay}. Trash pickup is ${info.trashFrequency.toLowerCase()}, and recycling is ${info.recycleFrequency.toLowerCase()}.`;
+                    let messageText = `Set up your can-to-curb service below. Your pickup day is ${info.pickupDay}. Trash pickup is ${info.trashFrequency.toLowerCase()}, and recycling is ${info.recycleFrequency.toLowerCase()}`;
+                    if (info.recycleWeek !== 'none') {
+                        messageText += ` on ${info.recycleWeek} weeks`;
+                    }
+                    if (info.compostFrequency !== 'none') {
+                        messageText += `. Compost pickup is ${info.compostFrequency.toLowerCase()}`;
+                        if (info.compostWeek !== 'none') {
+                            messageText += ` on ${info.compostWeek} weeks`;
+                        }
+                    }
+                    messageText += '.';
+                    message.textContent = messageText;
                 }
                 
             //  Show the service info display
                 const serviceInfoDisplay = document.getElementById('service-info-display');
                 if (serviceInfoDisplay) {
-                    serviceInfoDisplay.innerHTML = `
+                    let displayHtml = `
                         <div class="grid grid-cols-1 gap-4 text-sm">
                             <div>
                                 <span class="font-medium">Pickup Day:</span> ${info.pickupDay}
@@ -513,10 +527,28 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span class="font-medium">Trash Service:</span> ${info.trashFrequency}
                             </div>
                             <div>
-                                <span class="font-medium">Recycling Service:</span> ${info.recycleFrequency}
-                            </div>
+                                <span class="font-medium">Recycling Service:</span> ${info.recycleFrequency}`;
+                    
+                    if (info.recycleWeek !== 'none') {
+                        displayHtml += ` (${info.recycleWeek} weeks)`;
+                    }
+                    
+                    displayHtml += `</div>`;
+                    
+                    if (info.compostFrequency !== 'none') {
+                        displayHtml += `
+                            <div>
+                                <span class="font-medium">Compost Service:</span> ${info.compostFrequency}`;
+                        if (info.compostWeek !== 'none') {
+                            displayHtml += ` (${info.compostWeek} weeks)`;
+                        }
+                        displayHtml += `</div>`;
+                    }
+                    
+                    displayHtml += `
                         </div>
                     `;
+                    serviceInfoDisplay.innerHTML = displayHtml;
                 }
             };
             

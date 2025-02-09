@@ -33,21 +33,15 @@ class AddressValidator {
             
             // If any geofences are found, the address is in the service area
             if (searchData.geofences && searchData.geofences.length > 0) {
-                // Get the first geofence's metadata
-                const serviceInfo = searchData.geofences[0].metadata;
                 return {
                     isValid: true,
-                    serviceInfo: {
-                        pickupDay: serviceInfo.pickupday,
-                        trashFrequency: serviceInfo.trashfrequency,
-                        recycleFrequency: serviceInfo.recyclefrequency
-                    }
+                    geofences: searchData.geofences
                 };
             }
             
             return {
                 isValid: false,
-                serviceInfo: null
+                message: 'Sorry, we don\'t service your area yet.'
             };
         } catch (error) {
             console.error('Error checking service area:', error);
@@ -64,15 +58,22 @@ class AddressValidator {
             }
 
             // Check if address is in service area using Radar
-            const isInServiceArea = await this.isAddressInServiceArea(addressString);
-
             const serviceAreaCheck = await this.isAddressInServiceArea(addressString);
             
+            if (serviceAreaCheck.isValid && serviceAreaCheck.geofences && serviceAreaCheck.geofences.length > 0) {
+                const metadata = serviceAreaCheck.geofences[0].metadata;
+                return {
+                    isValid: true,
+                    message: 'Great news! We service your area.',
+                    address: addressString,
+                    geofences: serviceAreaCheck.geofences
+                };
+            }
+            
             return {
-                isValid: serviceAreaCheck.isValid,
-                message: serviceAreaCheck.isValid ? 'Great news! We service your area.' : 'Sorry, we don\'t service your area yet.',
-                address: addressString,
-                serviceInfo: serviceAreaCheck.serviceInfo
+                isValid: false,
+                message: serviceAreaCheck.message || 'Sorry, we don\'t service your area yet.',
+                address: addressString
             };
         } catch (error) {
             return {
@@ -85,6 +86,24 @@ class AddressValidator {
 }
 
 // Initialize validator and set up form handling
+// Helper function to display form error
+function displayFormError(form, message) {
+    const formError = form.querySelector('.w-form-fail');
+    const formSuccess = form.querySelector('.w-form-done');
+    
+    // Hide success message if visible
+    if (formSuccess) formSuccess.style.display = 'none';
+    
+    // Show error message
+    if (formError) {
+        formError.style.display = 'block';
+        const errorDiv = formError.querySelector('div');
+        if (errorDiv) {
+            errorDiv.textContent = message;
+        }
+    }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     const validator = new AddressValidator();
     const form = document.getElementById('wf-form-Address-form');
@@ -135,20 +154,25 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             const result = await validator.validateAddress(addressToValidate);
-
-            if (result.error) {
-                // Show error in form
-                const formError = form.querySelector('.w-form-fail');
+            const formError = form.querySelector('.w-form-fail');
+            const formSuccess = form.querySelector('.w-form-done');
+            
+            // First hide both messages
+            if (formSuccess) formSuccess.style.display = 'none';
+            if (formError) formError.style.display = 'none';
+            
+            if (!result.isValid) {
+                // Show error message
                 if (formError) {
                     formError.style.display = 'block';
-                    formError.textContent = result.message;
+                    const errorDiv = formError.querySelector('div');
+                    if (errorDiv) {
+                        errorDiv.textContent = result.message;
+                    }
                 }
-                
-                // Hide success message if visible
-                const formSuccess = form.querySelector('.w-form-done');
-                if (formSuccess) {
-                    formSuccess.style.display = 'none';
-                }
+                // Re-enable submit button
+                submitButton.disabled = false;
+                submitButton.value = originalButtonText;
             } else {
                 // Show loading spinner
                 const formContent = document.querySelector('.rl_contact6_content');
@@ -189,8 +213,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                     // Redirect to service details page
                     window.location.href = '/signup/service-details.html';
                     
-                    // Store service info in sessionStorage for the details page
-                    sessionStorage.setItem('serviceInfo', JSON.stringify(result.serviceInfo));
+                    // Extract service info from geofence metadata and store in sessionStorage
+                    const metadata = result.geofences[0].metadata;
+                    const serviceInfo = {
+                        pickupDay: metadata.trash_pickupday,
+                        trashFrequency: metadata.trash_frequency,
+                        recycleFrequency: metadata.recycle_frequency,
+                        recycleDay: metadata.recycle_pickupday,
+                        recycleWeek: metadata.recycle_week,
+                        compostFrequency: metadata.compost_frequency || 'none',
+                        compostDay: metadata.compost_pickupday || 'none',
+                        compostWeek: metadata.compost_week || 'none'
+                    };
+                    sessionStorage.setItem('serviceInfo', JSON.stringify(serviceInfo));
                     
                     // If we're already on the service details page, populate the form
                     if (window.location.pathname.includes('service-details.html')) {
