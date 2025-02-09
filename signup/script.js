@@ -90,6 +90,20 @@ document.addEventListener("DOMContentLoaded", () => {
       compostFrequency: "none",
     }
     
+    // Store address data in localStorage before proceeding
+    const addressData = {
+      address: address,
+      isInServiceArea: isInServiceArea,
+      serviceInfo: serviceInfo
+    };
+    
+    try {
+      localStorage.setItem('addressData', JSON.stringify(addressData));
+      await new Promise(resolve => setTimeout(resolve, 100)); // Small delay to ensure storage is complete
+    } catch (error) {
+      console.error('Error saving to localStorage:', error);
+    }
+    
     // Reset form states
     serviceInfoDisplay.classList.remove("hidden")
     serviceInfoForm.classList.add("hidden")

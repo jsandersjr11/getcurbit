@@ -104,6 +104,13 @@ function displayFormError(form, message) {
     }
 }
 
+// Listen for changes to localStorage
+window.addEventListener('storage', (e) => {
+    if (e.key === 'addressData' && e.newValue) {
+        console.log('Address data saved:', e.newValue);
+    }
+});
+
 document.addEventListener('DOMContentLoaded', async () => {
     const validator = new AddressValidator();
     const form = document.getElementById('wf-form-Address-form');
@@ -174,6 +181,22 @@ document.addEventListener('DOMContentLoaded', async () => {
                 submitButton.disabled = false;
                 submitButton.value = originalButtonText;
             } else {
+                // Create a promise to handle localStorage
+                const saveToStorage = new Promise((resolve, reject) => {
+                    try {
+                        const formData = {
+                            address: addressToValidate,
+                            geofences: result.geofences
+                        };
+                        localStorage.setItem('addressData', JSON.stringify(formData));
+                        resolve();
+                    } catch (error) {
+                        reject(error);
+                    }
+                });
+                
+                // Wait for storage to complete
+                await saveToStorage;
                 // Show loading spinner
                 const formContent = document.querySelector('.rl_contact6_content');
                 if (!formContent) {
