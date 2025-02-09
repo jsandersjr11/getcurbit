@@ -266,31 +266,17 @@ async function handleCheckout(event) {
         console.log('Creating line items...');
         const lineItems = [];
         
-        // Base fee price ID (always included)
-        const BASE_FEE_PRICE_ID = 'price_1QOPCMGwVRYqqGA765aEnpBI';
-        
-        // Price IDs for different services and frequencies
+        // Price IDs for different frequencies
         const priceIds = {
-            trash: {
-                'Weekly': 'price_1QpGMMGwVRYqqGA7PVf4W6Cs',
-                'Bi-weekly': 'price_1QpGHnGwVRYqqGA7xaHggXK9',
-                'Monthly': 'price_1QpGKBGwVRYqqGA7FwEBrz8k'
-            },
-            recycling: {
-                'Weekly': 'price_1Qpdn2GwVRYqqGA7NESAS1nE',
-                'Bi-weekly': 'price_1QpGHnGwVRYqqGA7xaHggXK9',
-                'Monthly': 'price_1QpGKBGwVRYqqGA7FwEBrz8k'
-            },
-            compost: {
-                'Weekly': 'price_1Qpdn2GwVRYqqGA7NESAS1nE',
-                'Bi-weekly': 'price_1QpGHnGwVRYqqGA7xaHggXK9',
-                'Monthly': 'price_1QpGKBGwVRYqqGA7FwEBrz8k'
-            }
+            base: 'price_1QpGMMGwVRYqqGA7PVf4W6Cs',    // Base price
+            weekly: 'price_1Qpdn2GwVRYqqGA7NESAS1nE',   // Weekly service
+            biweekly: 'price_1QpGHnGwVRYqqGA7xaHggXK9', // Bi-weekly service
+            monthly: 'price_1QpGKBGwVRYqqGA7FwEBrz8k'    // Monthly service
         };
 
-        // Always add the base fee
+        // Add base price
         lineItems.push({
-            price: BASE_FEE_PRICE_ID,
+            price: priceIds.base,
             quantity: 1
         });
 
@@ -299,11 +285,24 @@ async function handleCheckout(event) {
         const trashQuantity = parseInt(document.getElementById('trash-quantity').value);
         
         if (trashFrequency !== 'none' && trashQuantity > 0) {
-            // Add all trash bins at the selected frequency
-            lineItems.push({
-                price: priceIds.trash[trashFrequency],
-                quantity: trashQuantity
-            });
+            let priceId;
+            switch(trashFrequency) {
+                case 'Weekly':
+                    priceId = priceIds.weekly;
+                    break;
+                case 'Bi-weekly':
+                    priceId = priceIds.biweekly;
+                    break;
+                case 'Monthly':
+                    priceId = priceIds.monthly;
+                    break;
+            }
+            if (priceId) {
+                lineItems.push({
+                    price: priceId,
+                    quantity: trashQuantity
+                });
+            }
         }
 
         // Handle recycling bins
@@ -311,10 +310,24 @@ async function handleCheckout(event) {
         const recyclingQuantity = parseInt(document.getElementById('recycling-quantity').value);
         
         if (recyclingFrequency !== 'none' && recyclingQuantity > 0) {
-            lineItems.push({
-                price: priceIds.recycling[recyclingFrequency],
-                quantity: recyclingQuantity
-            });
+            let priceId;
+            switch(recyclingFrequency) {
+                case 'Weekly':
+                    priceId = priceIds.weekly;
+                    break;
+                case 'Bi-weekly':
+                    priceId = priceIds.biweekly;
+                    break;
+                case 'Monthly':
+                    priceId = priceIds.monthly;
+                    break;
+            }
+            if (priceId) {
+                lineItems.push({
+                    price: priceId,
+                    quantity: recyclingQuantity
+                });
+            }
         }
 
         // Handle compost bins
@@ -322,11 +335,25 @@ async function handleCheckout(event) {
         const compostQuantity = parseInt(document.getElementById('compost-quantity')?.value || '0');
         
         if (compostFrequency !== 'none' && compostQuantity > 0) {
-            lineItems.push({
-                price: priceIds.compost[compostFrequency],
-                quantity: compostQuantity
-            });
-        }
+            let priceId;
+            switch(compostFrequency) {
+                case 'Weekly':
+                    priceId = priceIds.weekly;
+                    break;
+                case 'Bi-weekly':
+                    priceId = priceIds.biweekly;
+                    break;
+                case 'Monthly':
+                    priceId = priceIds.monthly;
+                    break;
+            }
+            if (priceId) {
+                lineItems.push({
+                    price: priceId,
+                    quantity: compostQuantity
+                });
+            }
+        };
 
         console.log('Line items prepared:', lineItems);
         console.log('Redirecting to Stripe Checkout...');
@@ -342,17 +369,18 @@ async function handleCheckout(event) {
             ? 'https://getcurbit.com/signup/service-details.html'  // Production cancel URL
             : window.location.href;
 
+        // Create a Checkout Session
         try {
             // Redirect to Stripe Checkout
-            const result = await stripe.redirectToCheckout({
+            const { error } = await stripe.redirectToCheckout({
                 mode: 'subscription',
                 lineItems: lineItems,
                 successUrl: successUrl,
-                cancelUrl: cancelUrl,
+                cancelUrl: cancelUrl
             });
 
-            if (result.error) {
-                throw result.error;
+            if (error) {
+                throw error;
             }
         } catch (checkoutError) {
             console.error('Stripe Checkout Error:', checkoutError);
@@ -363,20 +391,16 @@ async function handleCheckout(event) {
                 alert('There was an error initiating checkout. Please try again or contact support if the issue persists.');
             }
         }
-
-        if (result.error) {
-            console.error('Error:', result.error);
-            alert('There was an error processing your payment. Please try again.');
-        }
     } catch (error) {
         console.error('Error:', error);
-        alert('There was an error processing your payment. Please try again.');
-    } finally {
         // Reset button state
         buttonText.classList.remove('hidden');
         buttonLoading.classList.add('hidden');
         checkoutButton.disabled = false;
         returnButton.classList.remove('hidden');
+        
+        // Show error to user
+        alert(error.message || 'There was an error processing your payment. Please try again.');
     }
 }
 
