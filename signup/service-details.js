@@ -246,6 +246,47 @@ class Calendar {
 // Load Stripe.js
 const stripe = Stripe('pk_live_51PhSkTGwVRYqqGA7KZ1MyQdPAkVQEjogtTdf7HU1HaD0VC39103UpCX2oKw4TQWQB17QL41ql2DHmprq1CxozbMa00bWPEYCoa');
 
+// Function to save form state
+function saveFormState() {
+    const formState = {
+        trashFrequency: document.getElementById('trash-bin-frequency').value,
+        trashQuantity: document.getElementById('trash-quantity').value,
+        recyclingFrequency: document.getElementById('recycling-bin-frequency').value,
+        recyclingQuantity: document.getElementById('recycling-quantity').value,
+        compostFrequency: document.getElementById('compost-bin-frequency')?.value || 'none',
+        compostQuantity: document.getElementById('compost-quantity')?.value || '0'
+    };
+    localStorage.setItem('curbitFormState', JSON.stringify(formState));
+}
+
+// Function to restore form state
+function restoreFormState() {
+    const savedState = localStorage.getItem('curbitFormState');
+    if (savedState) {
+        const formState = JSON.parse(savedState);
+        
+        // Restore trash bin values
+        document.getElementById('trash-bin-frequency').value = formState.trashFrequency;
+        document.getElementById('trash-quantity').value = formState.trashQuantity;
+        
+        // Restore recycling bin values
+        document.getElementById('recycling-bin-frequency').value = formState.recyclingFrequency;
+        document.getElementById('recycling-quantity').value = formState.recyclingQuantity;
+        
+        // Restore compost bin values if elements exist
+        const compostFreqEl = document.getElementById('compost-bin-frequency');
+        const compostQtyEl = document.getElementById('compost-quantity');
+        if (compostFreqEl) compostFreqEl.value = formState.compostFrequency;
+        if (compostQtyEl) compostQtyEl.value = formState.compostQuantity;
+        
+        // Trigger any necessary UI updates
+        updateTotalPrice();
+    }
+}
+
+// Call restoreFormState when the page loads
+document.addEventListener('DOMContentLoaded', restoreFormState);
+
 // Function to handle checkout
 async function handleCheckout(event) {
     console.log('Checkout process started...');
@@ -350,6 +391,9 @@ async function handleCheckout(event) {
 
         // Create a Checkout Session
         try {
+            // Save form state before redirecting
+            saveFormState();
+            
             // Redirect to Stripe Checkout
             const { error } = await stripe.redirectToCheckout({
                 mode: 'subscription',
