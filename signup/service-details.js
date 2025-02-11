@@ -266,12 +266,24 @@ async function handleCheckout(event) {
         console.log('Creating line items...');
         const lineItems = [];
         
-        // Price IDs for different frequencies
+        // Price IDs for different services and frequencies
         const priceIds = {
-            base: 'price_1QpGMMGwVRYqqGA7PVf4W6Cs',    // Base price
-            weekly: 'price_1Qpdn2GwVRYqqGA7NESAS1nE',   // Weekly service
-            biweekly: 'price_1QpGHnGwVRYqqGA7xaHggXK9', // Bi-weekly service
-            monthly: 'price_1QpGKBGwVRYqqGA7FwEBrz8k'    // Monthly service
+            base: 'price_1Qqaw2GwVRYqqGA7sZCyuVrB',    // Base fee
+            trash: {
+                Weekly: 'price_1QqaaCGwVRYqqGA7ZHzIxqq2',
+                'Bi-weekly': 'price_1Qqad7GwVRYqqGA7d7ErdWeP',
+                Monthly: 'price_1Qqai4GwVRYqqGA7lFtNSBlT'
+            },
+            recycling: {
+                Weekly: 'price_1QqakvGwVRYqqGA7Kx9IlYK6',
+                'Bi-weekly': 'price_1Qqan9GwVRYqqGA7HeiQHCO0',
+                Monthly: 'price_1QqapDGwVRYqqGA7bqBEllyl'
+            },
+            compost: {
+                Weekly: 'price_1Qqar2GwVRYqqGA7Bk7bUOm8',
+                'Bi-weekly': 'price_1QqasbGwVRYqqGA7xENHMXuL',
+                Monthly: 'price_1QqatzGwVRYqqGA7J5YsH3vu'
+            }
         };
 
         // Add base price
@@ -285,18 +297,7 @@ async function handleCheckout(event) {
         const trashQuantity = parseInt(document.getElementById('trash-quantity').value);
         
         if (trashFrequency !== 'none' && trashQuantity > 0) {
-            let priceId;
-            switch(trashFrequency) {
-                case 'Weekly':
-                    priceId = priceIds.weekly;
-                    break;
-                case 'Bi-weekly':
-                    priceId = priceIds.biweekly;
-                    break;
-                case 'Monthly':
-                    priceId = priceIds.monthly;
-                    break;
-            }
+            const priceId = priceIds.trash[trashFrequency];
             if (priceId) {
                 lineItems.push({
                     price: priceId,
@@ -310,18 +311,7 @@ async function handleCheckout(event) {
         const recyclingQuantity = parseInt(document.getElementById('recycling-quantity').value);
         
         if (recyclingFrequency !== 'none' && recyclingQuantity > 0) {
-            let priceId;
-            switch(recyclingFrequency) {
-                case 'Weekly':
-                    priceId = priceIds.weekly;
-                    break;
-                case 'Bi-weekly':
-                    priceId = priceIds.biweekly;
-                    break;
-                case 'Monthly':
-                    priceId = priceIds.monthly;
-                    break;
-            }
+            const priceId = priceIds.recycling[recyclingFrequency];
             if (priceId) {
                 lineItems.push({
                     price: priceId,
@@ -335,18 +325,7 @@ async function handleCheckout(event) {
         const compostQuantity = parseInt(document.getElementById('compost-quantity')?.value || '0');
         
         if (compostFrequency !== 'none' && compostQuantity > 0) {
-            let priceId;
-            switch(compostFrequency) {
-                case 'Weekly':
-                    priceId = priceIds.weekly;
-                    break;
-                case 'Bi-weekly':
-                    priceId = priceIds.biweekly;
-                    break;
-                case 'Monthly':
-                    priceId = priceIds.monthly;
-                    break;
-            }
+            const priceId = priceIds.compost[compostFrequency];
             if (priceId) {
                 lineItems.push({
                     price: priceId,
