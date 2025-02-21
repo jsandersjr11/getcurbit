@@ -45,7 +45,11 @@ class AddressValidator {
             };
         } catch (error) {
             console.error('Error checking service area:', error);
-            throw error;
+            return {
+                isValid: false,
+                message: 'We\'re having trouble validating your address. We\'ll add you to our waitlist.',
+                error: true
+            };
         }
     }
 
@@ -76,9 +80,10 @@ class AddressValidator {
                 address: addressString
             };
         } catch (error) {
+            // Any error in validation should be treated as an unserviced area
             return {
                 isValid: false,
-                message: error.message,
+                message: 'We\'re having trouble validating your address. We\'ll add you to our waitlist.',
                 error: true
             };
         }
@@ -169,17 +174,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (formError) formError.style.display = 'none';
             
             if (!result.isValid) {
-                // Show error message
-                if (formError) {
-                    formError.style.display = 'block';
-                    const errorDiv = formError.querySelector('div');
-                    if (errorDiv) {
-                        errorDiv.textContent = result.message;
-                    }
-                }
-                // Re-enable submit button
-                submitButton.disabled = false;
-                submitButton.value = originalButtonText;
+                // Store the address data for the future service page
+                const formData = {
+                    address: addressToValidate
+                };
+                localStorage.setItem('addressData', JSON.stringify(formData));
+                
+                // Redirect to future service page
+                window.location.href = '/signup/future-service.html';
             } else {
                 // Create a promise to handle localStorage
                 const saveToStorage = new Promise((resolve, reject) => {
@@ -291,15 +293,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         } catch (error) {
             console.error('Validation error:', error);
-            const formError = form.querySelector('.w-form-fail');
-            if (formError) {
-                formError.style.display = 'block';
-                formError.textContent = error.message || 'An error occurred. Please try again.';
-            }
-        } finally {
-            // Reset submit button state
-            submitButton.value = originalButtonText;
-            submitButton.disabled = false;
+            
+            // Store the address data for the future service page
+            const formData = {
+                address: addressToValidate
+            };
+            localStorage.setItem('addressData', JSON.stringify(formData));
+            
+            // Redirect to future service page for any validation errors
+            window.location.href = '/signup/future-service.html';
         }
     });
 });
