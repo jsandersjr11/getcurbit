@@ -284,6 +284,13 @@
                         </div>
                         <label for="trash-container">Select Your Bins</label>
                         <div id="trash-container" class="service-container">
+                            <!-- <div class="service-header">
+                                <label class="checkbox-container">
+                                    <input type="checkbox" class="service-checkbox">
+                                    <span class="checkbox-custom"></span>
+                                    <span class="service-label">🗑️ Trash</span>
+                                </label>
+                            </div> -->
                             <div class="frequency-select">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash mr-2 h-4 w-4"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
                                 <span>Trash Pickup Frequency</span>
@@ -337,8 +344,10 @@
                                 <button type="button" class="increment">+</button>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label>Service Start Date</label> 
+                        <div class="form-group start-date-section">
+                            <h3>Service Start Date</h3>
+                            <p class="subtitle">Select when you'd like your service to begin. Service starts on <span id="start-date">Mondays</span>.</p>
+                            <!-- <label>Service Start Date</label>  -->
                             <div class="calendar-wrapper">
                                 <div class="calendar-input" id="calendar-trigger">
                                     <span id="selected-date">Select a date</span>

@@ -433,10 +433,34 @@ function handleReturnToForm() {
     returnButton.classList.add('hidden');
 }
 
+// Function to update the start date display
+function updateStartDateDisplay() {
+    const serviceDaySelect = document.getElementById('service-day');
+    const startDateSpan = document.getElementById('start-date');
+    const startDateContainer = startDateSpan?.closest('.subtitle');
+    
+    if (serviceDaySelect && startDateSpan && startDateContainer) {
+        if (serviceDaySelect.value) {
+            startDateSpan.textContent = serviceDaySelect.value + 's';
+            startDateContainer.classList.remove('hidden');
+        } else {
+            startDateContainer.classList.add('hidden');
+        }
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     // Set up checkout button handler
     const checkoutButton = document.getElementById('checkout-button');
     const returnButton = document.getElementById('return-to-form');
+    
+    // Set up service day change handler
+    const serviceDaySelect = document.getElementById('service-day');
+    if (serviceDaySelect) {
+        serviceDaySelect.addEventListener('change', updateStartDateDisplay);
+        // Initialize the display
+        updateStartDateDisplay();
+    }
 
     // Handle reminder preferences
     const wantRemindersCheckbox = document.getElementById('want-reminders');

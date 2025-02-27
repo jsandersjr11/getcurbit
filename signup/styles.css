@@ -118,11 +118,23 @@ h3 {
   margin-bottom: 1rem;
 }
 
+.start-date-section h3 {
+  font-size: 1.125rem;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
 label {
   display: block;
   font-size: 0.875rem;
   font-weight: 500;
   margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 1rem;
 }
 
 input[type="text"],
@@ -248,8 +260,8 @@ button.secondary:hover {
 }
 
 .service-container {
-  display: flex;
-  align-items: center;
+  display: inline-flex;
+  align-items: flex-start;
   gap: 1rem;
   padding: 0.75rem;
   background-color: hsl(var(--card));
@@ -257,6 +269,69 @@ button.secondary:hover {
   border-radius: var(--radius);
   margin-bottom: 1rem;
   justify-content: space-between;
+  flex-direction: column;
+}
+
+button, input, optgroup, select, textarea {
+  color: inherit;
+  font: inherit;
+  margin: 0;
+}
+
+.service-header {
+  margin-bottom: 0.5rem;
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+input[type="checkbox"], input[type="radio"] {
+  box-sizing: border-box;
+  padding: 0;
+}
+
+.service-checkbox {
+  position: absolute;
+  opacity: 0;
+}
+
+.checkbox-custom {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid var(--border-color);
+  border-radius: 0.25rem;
+  margin-right: 0.5rem;
+  position: relative;
+}
+
+.service-checkbox:checked + .checkbox-custom {
+  background-color: #1b3b25;
+  border-color: #1b3b25;
+}
+
+.service-checkbox:checked + .checkbox-custom::after {
+  display: block;
+}
+
+.checkbox-custom::after {
+  content: "";
+  position: absolute;
+  display: none;
+  left: 4px;
+  top: 1px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.service-label {
+  font-size: 1.125rem;
+  font-weight: 500;
 }
 
 .frequency-select {
