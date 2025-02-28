@@ -675,8 +675,57 @@ document.addEventListener('DOMContentLoaded', () => {
         checkoutButton.querySelector('.button-text').classList.add('hidden');
         checkoutButton.querySelector('.button-loading').classList.remove('hidden');
         
-        // Here you would typically call your Stripe checkout function
-        // stripeCheckout();
+        // Get selected services data
+        const selectedServices = services.reduce((acc, service) => {
+            const container = document.getElementById(`${service}-container`);
+            const checkbox = container?.querySelector('.service-checkbox');
+            
+            if (checkbox?.checked) {
+                const frequency = document.getElementById(`${service}-bin-frequency`).value;
+                const quantity = document.getElementById(`${service}-quantity`).value;
+                const serviceDay = container.querySelector('select[id^="service-day"]').value;
+                
+                acc[service] = { frequency, quantity, serviceDay };
+            }
+            return acc;
+        }, {});
+        
+        // Get the service start date
+        const startDate = document.getElementById('service-start-date').value;
+        
+        // Create Stripe Hosted Page checkout
+        fetch('/create-checkout-session', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                services: selectedServices,
+                startDate: startDate,
+                collect: {
+                    phone: true,
+                    shipping_address: true,
+                    billing_address: true,
+                    email: true,
+                    name: true
+                }
+            })
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.url) {
+                window.location.href = result.url;
+            } else {
+                throw new Error('No checkout URL received');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showError('An error occurred. Please try again.');
+            // Reset button state
+            checkoutButton.querySelector('.button-text').classList.remove('hidden');
+            checkoutButton.querySelector('.button-loading').classList.add('hidden');
+        });
     });
     
     // Set up checkout button handler
