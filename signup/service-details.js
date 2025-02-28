@@ -477,8 +477,6 @@ function updateStartDateDisplay() {
 
 // Function to toggle service details visibility and manage quantity
 function toggleServiceDetails(checkbox, detailsContainer) {
-    detailsContainer.style.display = checkbox.checked ? 'flex' : 'none';
-    
     // Get the service container and related elements
     const container = checkbox.closest('.service-container');
     const serviceId = container.id.replace('-container', '');
@@ -486,8 +484,18 @@ function toggleServiceDetails(checkbox, detailsContainer) {
     const frequencySelect = document.getElementById(`${serviceId}-bin-frequency`);
     const serviceDaySelect = container.querySelector('select[id^="service-day"]');
     
+    // Get all form elements in the container
+    const formElements = container.querySelectorAll('select, input[type="number"]');
+    
     if (checkbox.checked) {
         // When checked:
+        detailsContainer.style.display = 'flex';
+        
+        // Enable all form elements
+        formElements.forEach(element => {
+            element.disabled = false;
+        });
+        
         // 1. Ensure quantity is at least 1
         if (quantityInput && parseInt(quantityInput.value) < 1) {
             quantityInput.value = '1';
@@ -508,20 +516,19 @@ function toggleServiceDetails(checkbox, detailsContainer) {
         }
     } else {
         // When unchecked:
-        // 1. Reset quantity to 0
-        if (quantityInput) {
-            quantityInput.value = '0';
-        }
+        detailsContainer.style.display = 'none';
         
-        // 2. Reset frequency to none
-        if (frequencySelect) {
-            frequencySelect.value = 'none';
-        }
-        
-        // 3. Reset service day
-        if (serviceDaySelect) {
-            serviceDaySelect.value = '';
-        }
+        // Disable and reset all form elements
+        formElements.forEach(element => {
+            element.disabled = true;
+            element.required = false;
+            
+            if (element.tagName === 'SELECT') {
+                element.value = element.id.includes('frequency') ? 'none' : '';
+            } else if (element.type === 'number') {
+                element.value = '0';
+            }
+        });
     }
     
     // Update pricing
@@ -597,7 +604,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (container) {
             // Listen for checkbox changes
             const checkbox = container.querySelector('.service-checkbox');
-            checkbox?.addEventListener('change', updatePricing);
+            checkbox?.addEventListener('change', () => {
+                updatePricing();
+                // Disable/enable form elements based on checkbox state
+                const formElements = container.querySelectorAll('select, input[type="number"]');
+                formElements.forEach(element => {
+                    if (checkbox.checked) {
+                        element.required = true;
+                    } else {
+                        element.required = false;
+                        element.setCustomValidity('');
+                    }
+                });
+            });
             
             // Listen for frequency changes
             const frequency = document.getElementById(`${service}-bin-frequency`);
@@ -616,6 +635,50 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial price update
     updatePricing();
 
+    // Set up form submission handler
+    const form = document.querySelector('form');
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        // Check if at least one service is selected
+        const hasSelectedService = services.some(service => {
+            const container = document.getElementById(`${service}-container`);
+            return container?.querySelector('.service-checkbox')?.checked;
+        });
+        
+        if (!hasSelectedService) {
+            showError('Please select at least one service.');
+            return;
+        }
+        
+        // Validate only checked services
+        let isValid = true;
+        services.forEach(service => {
+            const container = document.getElementById(`${service}-container`);
+            const checkbox = container?.querySelector('.service-checkbox');
+            
+            if (checkbox?.checked) {
+                const daySelect = container.querySelector('select[id^="service-day"]');
+                const frequency = document.getElementById(`${service}-bin-frequency`);
+                
+                if (!daySelect?.value || frequency?.value === 'none') {
+                    isValid = false;
+                    showError(`Please complete all fields for ${service} service.`);
+                }
+            }
+        });
+        
+        if (!isValid) return;
+        
+        // If form is valid, proceed with checkout
+        const checkoutButton = document.getElementById('checkout-button');
+        checkoutButton.querySelector('.button-text').classList.add('hidden');
+        checkoutButton.querySelector('.button-loading').classList.remove('hidden');
+        
+        // Here you would typically call your Stripe checkout function
+        // stripeCheckout();
+    });
+    
     // Set up checkout button handler
     const checkoutButton = document.getElementById('checkout-button');
     const returnButton = document.getElementById('return-to-form');
