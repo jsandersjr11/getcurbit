@@ -213,7 +213,7 @@
                     <span id="checked-address" class="font-medium"></span>
                 </div>
             </div>
-            <p id="service-area-message" class="text-muted-foreground"></p>
+            <!-- <p id="service-area-message" class="text-muted-foreground"></p> -->
           </div>
           <form id="service-form" class="space-y-6">
                 <div id="service-details" class="space-y-6">
@@ -271,77 +271,145 @@
                   </div> -->
                     
                     <div id="bin-quantities" class="space-y-4">
-                        <div class="form-group">
+                        <!-- <div class="form-group">
                             <label for="service-day">Service Day</label>
                             <select id="service-day" required>
-                                <option value="">Select service day</option>
+                                <option value="">Select day</option>
                                 <option value="Monday">Monday</option>
                                 <option value="Tuesday">Tuesday</option>
                                 <option value="Wednesday">Wednesday</option>
                                 <option value="Thursday">Thursday</option>
                                 <option value="Friday">Friday</option>
                             </select>
-                        </div>
+                        </div> -->
                         <label for="trash-container">Select Your Bins</label>
                         <div id="trash-container" class="service-container">
-                            <!-- <div class="service-header">
+                            <div class="service-header">
                                 <label class="checkbox-container">
                                     <input type="checkbox" class="service-checkbox">
                                     <span class="checkbox-custom"></span>
                                     <span class="service-label">🗑️ Trash</span>
                                 </label>
-                            </div> -->
-                            <div class="frequency-select">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash mr-2 h-4 w-4"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
-                                <span>Trash Pickup Frequency</span>
-                                <select id="trash-bin-frequency">
-                                    <option value="none">No trash service</option>
-                                    <option value="Weekly">Weekly</option>
-                                    <option value="Bi-weekly">Bi-weekly</option>
-                                    <option value="Monthly">Monthly</option>
-                                </select>
                             </div>
-                            <div class="input-stepper">
-                                <!-- <span># of Trash Bins</span> -->
-                                <button type="button" class="decrement">-</button>
-                                <input type="number" id="trash-quantity" value="1" min="1" max="5">
-                                <button type="button" class="increment">+</button>
+                            <div class="service-details">
+                                <div class="service-options">
+                                    <div class="frequency-select">
+                                        <label for="service-day">Service Day</label>
+                                        <select id="service-day" required>
+                                            <option value="">Select service day</option>
+                                            <option value="Monday">Monday</option>
+                                            <option value="Tuesday">Tuesday</option>
+                                            <option value="Wednesday">Wednesday</option>
+                                            <option value="Thursday">Thursday</option>
+                                            <option value="Friday">Friday</option>
+                                        </select>
+                                    </div>
+                                    <div class="frequency-select">
+                                        <label for="trash-bin-frequency">Frequency</label>
+                                        <select id="trash-bin-frequency">
+                                            <option value="none">No trash service</option>
+                                            <option value="Weekly">Weekly</option>
+                                            <option value="Bi-weekly">Bi-weekly</option>
+                                            <option value="Monthly">Monthly</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="number-stepper">
+                                    <label>Number of Cans</label>
+                                    <div class="input-stepper">
+                                        <div class="stepper-controls">
+                                            <button type="button" class="decrement">-</button>
+                                            <input type="number" id="trash-quantity" value="1" min="1" max="20">
+                                            <button type="button" class="increment">+</button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div id="recycling-container" class="service-container">
-                            <div class="frequency-select">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-recycle mr-2 h-4 w-4"><path d="M7 19H4.815a1.83 1.83 0 0 1-1.57-.881 1.785 1.785 0 0 1-.004-1.784L7.196 9.5"></path><path d="M11 19h8.203a1.83 1.83 0 0 0 1.556-.89 1.784 1.784 0 0 0 0-1.775l-1.226-2.12"></path><path d="m14 16-3 3 3 3"></path><path d="M8.293 13.596 7.196 9.5 3.1 10.598"></path><path d="m9.344 5.811 1.093-1.892A1.83 1.83 0 0 1 11.985 3a1.784 1.784 0 0 1 1.546.888l3.943 6.843"></path><path d="m13.378 9.633 4.096 1.098 1.097-4.096"></path></svg>
-                                <span>Recycling Pickup Frequency</span>
-                                <select id="recycling-bin-frequency">
-                                    <option value="none">No recycling service</option>
-                                    <option value="Weekly">Weekly</option>
-                                    <option value="Bi-weekly">Bi-weekly</option>
-                                    <option value="Monthly">Monthly</option>
-                                </select>
+                            <div class="service-header">
+                                <label class="checkbox-container">
+                                    <input type="checkbox" class="service-checkbox">
+                                    <span class="checkbox-custom"></span>
+                                    <span class="service-label">♻️ Recycling</span>
+                                </label>
                             </div>
-                            <div class="input-stepper" id="recycling-stepper">
-                                <!-- <span># of Recycling Bins</span> -->
-                                <button type="button" class="decrement">-</button>
-                                <input type="number" id="recycling-quantity" value="0" min="0" max="5">
-                                <button type="button" class="increment">+</button>
+                            <div class="service-details">
+                                <div class="service-options">
+                                    <div class="frequency-select">
+                                        <label for="service-day">Service Day</label>
+                                        <select id="service-day" required>
+                                            <option value="">Select service day</option>
+                                            <option value="Monday">Monday</option>
+                                            <option value="Tuesday">Tuesday</option>
+                                            <option value="Wednesday">Wednesday</option>
+                                            <option value="Thursday">Thursday</option>
+                                            <option value="Friday">Friday</option>
+                                        </select>
+                                    </div>
+                                    <div class="frequency-select">
+                                        <label for="recycling-bin-frequency">Frequency</label>
+                                        <select id="recycling-bin-frequency">
+                                            <option value="none">No recycling service</option>
+                                            <option value="Weekly">Weekly</option>
+                                            <option value="Bi-weekly">Bi-weekly</option>
+                                            <option value="Monthly">Monthly</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="number-stepper">
+                                    <label>Number of Cans</label>
+                                    <div class="input-stepper">
+                                        <div class="stepper-controls">
+                                            <button type="button" class="decrement">-</button>
+                                            <input type="number" id="recycling-quantity" value="1" min="1" max="20">
+                                            <button type="button" class="increment">+</button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div id="compost-container" class="service-container">
-                            <div class="frequency-select">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-leaf mr-2 h-4 w-4"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path></svg>
-                                <span>Compost Pickup Frequency</span>
-                                <select id="compost-bin-frequency">
-                                    <option value="none">No compost service</option>
-                                    <option value="Weekly">Weekly</option>
-                                    <option value="Bi-weekly">Bi-weekly</option>
-                                    <option value="Monthly">Monthly</option>
-                                </select>
+                            <div class="service-header">
+                                <label class="checkbox-container">
+                                    <input type="checkbox" class="service-checkbox">
+                                    <span class="checkbox-custom"></span>
+                                    <span class="service-label">🍃 Compost</span>
+                                </label>
                             </div>
-                            <div class="input-stepper" id="compost-stepper">
-                                <!-- <span># of Compost Bins</span> -->
-                                <button type="button" class="decrement">-</button>
-                                <input type="number" id="compost-quantity" value="0" min="0" max="5">
-                                <button type="button" class="increment">+</button>
+                            <div class="service-details">
+                                <div class="service-options">
+                                    <div class="frequency-select">
+                                        <label for="service-day">Service Day</label>
+                                        <select id="service-day" required>
+                                            <option value="">Select service day</option>
+                                            <option value="Monday">Monday</option>
+                                            <option value="Tuesday">Tuesday</option>
+                                            <option value="Wednesday">Wednesday</option>
+                                            <option value="Thursday">Thursday</option>
+                                            <option value="Friday">Friday</option>
+                                        </select>
+                                    </div>
+                                    <div class="frequency-select">
+                                        <label for="compost-bin-frequency">Frequency</label>
+                                        <select id="compost-bin-frequency">
+                                            <option value="none">No compost service</option>
+                                            <option value="Weekly">Weekly</option>
+                                            <option value="Bi-weekly">Bi-weekly</option>
+                                            <option value="Monthly">Monthly</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="number-stepper">
+                                    <label>Number of Cans</label>
+                                    <div class="input-stepper">
+                                        <div class="stepper-controls">
+                                            <button type="button" class="decrement">-</button>
+                                            <input type="number" id="compost-quantity" value="1" min="1" max="20">
+                                            <button type="button" class="increment">+</button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="form-group start-date-section">
@@ -381,15 +449,20 @@
                             <p class="text-sm text-muted-foreground mt-2">* Service start dates must be at least 2 weeks out to allow for bin delivery and route scheduling.</p>
                         </div>
                     </div>
-                    <div id="pricing" class="pricing-section">
-                      <h3 class="text-lg font-semibold mb-2">Pricing</h3>
-                      <p id="total-price" class="font-semibold"></p>
-                      <p class="text-sm text-muted-foreground mt-1">
-                        Base price: $39/month for one bin. Additional bins: + $10/month each (Weekly collection). + $5/month each (Bi-weekly collection). + $2.50/month (Monthly collection)
-                      </p>
+                    <!-- Pricing Section -->
+                    <div class="pricing-section">
+                        <div class="price-row">
+                            <span class="price-label">Base Fee</span>
+                            <span class="price-value">$29/mo</span>
+                        </div>
+                        <div id="service-prices"></div>
+                        <div class="price-row total">
+                            <span>Total</span>
+                            <span id="total-price">$29/mo</span>
+                        </div>
                     </div>
                     <button type="submit" id="checkout-button" class="primary-button">
-    <span class="button-text">Sign Up for Can-to-Curb Service</span>
+    <span class="button-text">Sign Up Now</span>
     <span class="button-loading hidden">Processing...</span>
 </button>
 <button type="button" id="return-to-form" class="secondary-button hidden">Return to Form</button>

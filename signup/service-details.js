@@ -9,10 +9,21 @@ function initializeStepper(stepper) {
     const input = stepper.querySelector('input[type="number"]');
     const decrement = stepper.querySelector('.decrement');
     const increment = stepper.querySelector('.increment');
+    const container = stepper.closest('.service-container');
+    const checkbox = container?.querySelector('.service-checkbox');
+    
+    // Prevent manual input of 0 when service is checked
+    input.addEventListener('change', () => {
+        if (checkbox?.checked && parseInt(input.value) < 1) {
+            input.value = '1';
+        }
+    });
     
     decrement.addEventListener('click', () => {
         const currentValue = parseInt(input.value);
-        if (currentValue > parseInt(input.min)) {
+        // Only allow decrement to 0 if service is unchecked
+        const minValue = checkbox?.checked ? 1 : parseInt(input.min);
+        if (currentValue > minValue) {
             input.value = currentValue - 1;
             input.dispatchEvent(new Event('change'));
         }
@@ -27,65 +38,80 @@ function initializeStepper(stepper) {
     });
 }
 
-// Function to calculate price based on frequency and quantity
-function calculatePrice(frequency, quantity) {
-    if (quantity === 0 || frequency === 'none') return 0;
-    
-    switch (frequency) {
-        case 'Weekly':
-            return WEEKLY_PRICE * quantity;
-        case 'Bi-weekly':
-            return BIWEEKLY_PRICE * quantity;
-        case 'Monthly':
-            return MONTHLY_PRICE * quantity;
-        default:
-            return 0;
-    }
+// Constants for pricing
+const BASE_FEE = 29;
+const SERVICE_PRICES = {
+    Weekly: 10,
+    'Bi-weekly': 5,
+    Monthly: 2.50
+};
+
+// Function to calculate price for a service
+function calculateServicePrice(serviceType, frequency, quantity, isChecked) {
+    if (!isChecked || frequency === 'none' || quantity === 0) return 0;
+    return SERVICE_PRICES[frequency] * quantity;
 }
 
-// Function to update total price
-function updateTotalPrice() {
-    const trashFrequency = document.getElementById('trash-bin-frequency').value;
-    const recyclingFrequency = document.getElementById('recycling-bin-frequency').value;
-    const compostFrequency = document.getElementById('compost-frequency')?.value || 'Weekly';
-    
-    const trashQuantity = parseInt(document.getElementById('trash-quantity').value) - 1; // Subtract 1 for base price
-    const recyclingQuantity = parseInt(document.getElementById('recycling-quantity').value);
-    const compostQuantity = parseInt(document.getElementById('compost-quantity').value);
-    
-    let total = BASE_PRICE; // Base price for first trash can
-    
-    // Add additional trash cans
-    total += calculatePrice(trashFrequency, trashQuantity);
-    
-    // Add recycling
-    total += calculatePrice(recyclingFrequency, recyclingQuantity);
-    
-    // Add compost
-    total += calculatePrice(compostFrequency, compostQuantity);
-    
-    // Update the price display
+// Function to get service day description
+function getServiceDayDescription(container) {
+    const daySelect = container.querySelector('select[id^="service-day"]');
+    return daySelect?.value ? daySelect.value : 'No day selected';
+}
+
+// Function to update pricing display
+function updatePricing() {
+    const servicePricesDiv = document.getElementById('service-prices');
     const totalPriceElement = document.getElementById('total-price');
-    totalPriceElement.textContent = `Total: $${total.toFixed(2)}/month`;
+    let total = BASE_FEE;
+    let priceRows = '';
+
+    // Service types configuration
+    const services = [
+        { id: 'trash', emoji: '🗑️', label: 'Trash Service' },
+        { id: 'recycling', emoji: '♻️', label: 'Recycling Service' },
+        { id: 'compost', emoji: '🍃', label: 'Compost Service' }
+    ];
+
+    services.forEach(service => {
+        const container = document.getElementById(`${service.id}-container`);
+        const checkbox = container.querySelector('.service-checkbox');
+        const frequency = document.getElementById(`${service.id}-bin-frequency`)?.value;
+        const quantity = parseInt(document.getElementById(`${service.id}-quantity`)?.value || '0');
+        const serviceDay = getServiceDayDescription(container);
+
+        if (checkbox.checked) {
+            const price = calculateServicePrice(service.id, frequency, quantity, true);
+            total += price;
+
+            priceRows += `
+                <div class="price-row">
+                    <span class="price-label">
+                        ${service.label} 
+                        (${quantity} can${quantity > 1 ? 's' : ''}, 
+                        ${frequency} on ${serviceDay})
+                    </span>
+                    <span class="price-value">$${price.toFixed(2)}/mo</span>
+                </div>`;
+        }
+    });
+
+    // Update service prices display
+    servicePricesDiv.innerHTML = priceRows;
+    
+    // Update total price
+    totalPriceElement.textContent = `$${total.toFixed(2)}/mo`;
 }
 
 // Function to handle frequency changes in the service info form
 function handleFrequencyChange(binType) {
     const container = document.getElementById(`${binType}-container`);
-    const stepper = container.querySelector('.input-stepper');
     const binFrequency = document.getElementById(`${binType}-bin-frequency`);
     
-    if (binFrequency && binFrequency.value === 'none') {
-        // Hide stepper when 'none' is selected
-        stepper?.classList.add('hidden');
-        if (binType === 'trash') {
-            // For trash, set quantity to 0 when no service is selected
-            const quantity = document.getElementById(`${binType}-quantity`);
-            if (quantity) quantity.value = '0';
-        }
+    if (binType === 'trash' && binFrequency && binFrequency.value === 'none') {
+        // For trash, set quantity to 0 when no service is selected
+        const quantity = document.getElementById(`${binType}-quantity`);
+        if (quantity) quantity.value = '0';
     } else {
-        // Show stepper for any other frequency
-        stepper?.classList.remove('hidden');
         // Initialize quantity to 1 if it was 0
         const quantity = document.getElementById(`${binType}-quantity`);
         if (quantity && quantity.value === '0') {
@@ -449,7 +475,147 @@ function updateStartDateDisplay() {
     }
 }
 
+// Function to toggle service details visibility and manage quantity
+function toggleServiceDetails(checkbox, detailsContainer) {
+    detailsContainer.style.display = checkbox.checked ? 'flex' : 'none';
+    
+    // Get the service container and related elements
+    const container = checkbox.closest('.service-container');
+    const serviceId = container.id.replace('-container', '');
+    const quantityInput = document.getElementById(`${serviceId}-quantity`);
+    const frequencySelect = document.getElementById(`${serviceId}-bin-frequency`);
+    const serviceDaySelect = container.querySelector('select[id^="service-day"]');
+    
+    if (checkbox.checked) {
+        // When checked:
+        // 1. Ensure quantity is at least 1
+        if (quantityInput && parseInt(quantityInput.value) < 1) {
+            quantityInput.value = '1';
+        }
+        
+        // 2. Set frequency to Weekly
+        if (frequencySelect) {
+            frequencySelect.value = 'Weekly';
+        }
+        
+        // 3. Match the trash service day if this isn't the trash container
+        if (serviceId !== 'trash' && serviceDaySelect) {
+            const trashContainer = document.getElementById('trash-container');
+            const trashDaySelect = trashContainer?.querySelector('select[id^="service-day"]');
+            if (trashDaySelect?.value) {
+                serviceDaySelect.value = trashDaySelect.value;
+            }
+        }
+    } else {
+        // When unchecked:
+        // 1. Reset quantity to 0
+        if (quantityInput) {
+            quantityInput.value = '0';
+        }
+        
+        // 2. Reset frequency to none
+        if (frequencySelect) {
+            frequencySelect.value = 'none';
+        }
+        
+        // 3. Reset service day
+        if (serviceDaySelect) {
+            serviceDaySelect.value = '';
+        }
+    }
+    
+    // Update pricing
+    updatePricing();
+}
+
+// Function to set service details from Radar data
+function setServiceDetailsFromRadar() {
+    const serviceInfo = JSON.parse(sessionStorage.getItem('serviceInfo') || '{}');
+    
+    // Setup service containers
+    const services = [
+        {
+            id: 'trash',
+            dayKey: 'pickupDay',
+            frequencyKey: 'trashFrequency'
+        },
+        {
+            id: 'recycling',
+            dayKey: 'recycleDay',
+            frequencyKey: 'recycleFrequency'
+        },
+        {
+            id: 'compost',
+            dayKey: 'compostDay',
+            frequencyKey: 'compostFrequency'
+        }
+    ];
+    
+    services.forEach(service => {
+        const container = document.getElementById(`${service.id}-container`);
+        if (container) {
+            const checkbox = container.querySelector('.service-checkbox');
+            const details = container.querySelector('.service-details');
+            const daySelect = details?.querySelector('select[id^="service-day"]');
+            const frequencySelect = details?.querySelector(`select[id$="bin-frequency"]`);
+            
+            if (checkbox && details && daySelect && frequencySelect) {
+                // Set frequency if available
+                const frequency = serviceInfo[service.frequencyKey];
+                if (frequency && frequency !== 'none') {
+                    checkbox.checked = true;
+                    frequencySelect.value = frequency;
+                }
+                
+                // Set service day if available
+                const serviceDay = serviceInfo[service.dayKey];
+                if (serviceDay && serviceDay !== 'none') {
+                    daySelect.value = serviceDay;
+                }
+                
+                // Show/hide details based on checkbox state
+                toggleServiceDetails(checkbox, details);
+                
+                // Add change event listener
+                checkbox.addEventListener('change', () => {
+                    toggleServiceDetails(checkbox, details);
+                });
+            }
+        }
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize service details from Radar data
+    setServiceDetailsFromRadar();
+    
+    // Set up pricing update listeners
+    const services = ['trash', 'recycling', 'compost'];
+    
+    services.forEach(service => {
+        const container = document.getElementById(`${service}-container`);
+        if (container) {
+            // Listen for checkbox changes
+            const checkbox = container.querySelector('.service-checkbox');
+            checkbox?.addEventListener('change', updatePricing);
+            
+            // Listen for frequency changes
+            const frequency = document.getElementById(`${service}-bin-frequency`);
+            frequency?.addEventListener('change', updatePricing);
+            
+            // Listen for quantity changes
+            const quantity = document.getElementById(`${service}-quantity`);
+            quantity?.addEventListener('change', updatePricing);
+            
+            // Listen for service day changes
+            const daySelect = container.querySelector('select[id^="service-day"]');
+            daySelect?.addEventListener('change', updatePricing);
+        }
+    });
+    
+    // Initial price update
+    updatePricing();
+
     // Set up checkout button handler
     const checkoutButton = document.getElementById('checkout-button');
     const returnButton = document.getElementById('return-to-form');
@@ -568,60 +734,60 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('service-details').classList.remove('hidden');
             
             // Function to update the display with current values
-            const updateDisplay = (info) => {
-                // Update the service area message
-                const message = document.getElementById('service-area-message');
-                if (message) {
-                    let messageText = `Set up your can-to-curb service below. Your pickup day is ${info.pickupDay}. Trash pickup is ${info.trashFrequency.toLowerCase()}, and recycling is ${info.recycleFrequency.toLowerCase()}`;
-                    if (info.recycleWeek !== 'none') {
-                        messageText += ` on ${info.recycleWeek} weeks`;
-                    }
-                    if (info.compostFrequency !== 'none') {
-                        messageText += `. Compost pickup is ${info.compostFrequency.toLowerCase()}`;
-                        if (info.compostWeek !== 'none') {
-                            messageText += ` on ${info.compostWeek} weeks`;
-                        }
-                    }
-                    messageText += '.';
-                    message.textContent = messageText;
-                }
+            // const updateDisplay = (info) => {
+            //     // Update the service area message
+            //     const message = document.getElementById('service-area-message');
+            //     if (message) {
+            //         let messageText = `Set up your can-to-curb service below. Your pickup day is ${info.pickupDay}. Trash pickup is ${info.trashFrequency.toLowerCase()}, and recycling is ${info.recycleFrequency.toLowerCase()}`;
+            //         if (info.recycleWeek !== 'none') {
+            //             messageText += ` on ${info.recycleWeek} weeks`;
+            //         }
+            //         if (info.compostFrequency !== 'none') {
+            //             messageText += `. Compost pickup is ${info.compostFrequency.toLowerCase()}`;
+            //             if (info.compostWeek !== 'none') {
+            //                 messageText += ` on ${info.compostWeek} weeks`;
+            //             }
+            //         }
+            //         messageText += '.';
+            //         message.textContent = messageText;
+            //     }
                 
-            //  Show the service info display
-                const serviceInfoDisplay = document.getElementById('service-info-display');
-                if (serviceInfoDisplay) {
-                    let displayHtml = `
-                        <div class="grid grid-cols-1 gap-4 text-sm">
-                            <div>
-                                <span class="font-medium">Pickup Day:</span> ${info.pickupDay}
-                            </div>
-                            <div>
-                                <span class="font-medium">Trash Service:</span> ${info.trashFrequency}
-                            </div>
-                            <div>
-                                <span class="font-medium">Recycling Service:</span> ${info.recycleFrequency}`;
+            // //  Show the service info display
+            //     const serviceInfoDisplay = document.getElementById('service-info-display');
+            //     if (serviceInfoDisplay) {
+            //         let displayHtml = `
+            //             <div class="grid grid-cols-1 gap-4 text-sm">
+            //                 <div>
+            //                     <span class="font-medium">Pickup Day:</span> ${info.pickupDay}
+            //                 </div>
+            //                 <div>
+            //                     <span class="font-medium">Trash Service:</span> ${info.trashFrequency}
+            //                 </div>
+            //                 <div>
+            //                     <span class="font-medium">Recycling Service:</span> ${info.recycleFrequency}`;
                     
-                    if (info.recycleWeek !== 'none') {
-                        displayHtml += ` (${info.recycleWeek} weeks)`;
-                    }
+            //         if (info.recycleWeek !== 'none') {
+            //             displayHtml += ` (${info.recycleWeek} weeks)`;
+            //         }
                     
-                    displayHtml += `</div>`;
+            //         displayHtml += `</div>`;
                     
-                    if (info.compostFrequency !== 'none') {
-                        displayHtml += `
-                            <div>
-                                <span class="font-medium">Compost Service:</span> ${info.compostFrequency}`;
-                        if (info.compostWeek !== 'none') {
-                            displayHtml += ` (${info.compostWeek} weeks)`;
-                        }
-                        displayHtml += `</div>`;
-                    }
+            //         if (info.compostFrequency !== 'none') {
+            //             displayHtml += `
+            //                 <div>
+            //                     <span class="font-medium">Compost Service:</span> ${info.compostFrequency}`;
+            //             if (info.compostWeek !== 'none') {
+            //                 displayHtml += ` (${info.compostWeek} weeks)`;
+            //             }
+            //             displayHtml += `</div>`;
+            //         }
                     
-                    displayHtml += `
-                        </div>
-                    `;
-                    serviceInfoDisplay.innerHTML = displayHtml;
-                }
-            };
+            //         displayHtml += `
+            //             </div>
+            //         `;
+            //         serviceInfoDisplay.innerHTML = displayHtml;
+            //     }
+            // };
             
             // Function to update form fields
             const updateFormFields = (info) => {
