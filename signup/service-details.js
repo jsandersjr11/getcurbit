@@ -311,7 +311,64 @@ function restoreFormState() {
 }
 
 // Call restoreFormState when the page loads
-document.addEventListener('DOMContentLoaded', restoreFormState);
+document.addEventListener('DOMContentLoaded', () => {
+    restoreFormState();
+
+    // Setup reminder button functionality
+    const reminderButton = document.getElementById('reminderButton');
+    const signupForm = document.getElementById('service-form');
+    const signupSection = document.querySelector('.signup-section');
+    const reminderForm = document.querySelector('.reminder-form');
+    const backToServiceButton = document.querySelector('.back-to-service');
+
+    if (reminderButton && signupForm && reminderForm) {
+        reminderButton.addEventListener('click', () => {
+            // Hide only specific sections
+            document.querySelector('.start-date-section')?.classList.add('hidden');
+            document.querySelector('.pricing-section')?.classList.add('hidden');
+            document.querySelector('#checkout-button')?.classList.add('hidden');
+            signupSection.classList.add('hidden');
+            reminderForm.classList.remove('hidden');
+        });
+
+        backToServiceButton.addEventListener('click', () => {
+            reminderForm.classList.add('hidden');
+            // Show the previously hidden sections
+            document.querySelector('.start-date-section')?.classList.remove('hidden');
+            document.querySelector('.pricing-section')?.classList.remove('hidden');
+            document.querySelector('#checkout-button')?.classList.remove('hidden');
+            signupSection.classList.remove('hidden');
+        });
+
+        // Handle contact method change
+        const contactMethodInputs = document.querySelectorAll('input[name="contactMethod"]');
+        const contactInfoInput = document.getElementById('contactInfo');
+
+        const contactLabel = document.querySelector('label[for="contactInfo"]');
+        
+        contactMethodInputs.forEach(input => {
+            input.addEventListener('change', () => {
+                if (input.value === 'email') {
+                    contactInfoInput.type = 'email';
+                    contactInfoInput.placeholder = 'email@example.com';
+                    contactLabel.textContent = 'Email Address';
+                    document.querySelector('.sms-disclaimer').classList.add('hidden');
+                } else {
+                    contactInfoInput.type = 'tel';
+                    contactInfoInput.placeholder = '(555) 555-5555';
+                    contactLabel.textContent = 'Phone Number';
+                    document.querySelector('.sms-disclaimer').classList.remove('hidden');
+                }
+            });
+        });
+        
+        // Set initial label based on default selected radio button
+        const initialMethod = document.querySelector('input[name="contactMethod"]:checked');
+        if (initialMethod) {
+            contactLabel.textContent = initialMethod.value === 'email' ? 'Email Address' : 'Phone Number';
+        }
+    }
+});
 
 // Function to handle checkout
 async function handleCheckout(event) {
@@ -746,22 +803,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const contactInput = document.getElementById('contact-info');
     const reminderMethodInputs = document.querySelectorAll('input[name="reminder-method"]');
 
-    function updateContactInputRequired() {
-        const isVisible = !reminderOptions.classList.contains('hidden');
-        const selectedMethod = document.querySelector('input[name="reminder-method"]:checked').value;
-        contactInput.required = isVisible && selectedMethod === 'sms';
-        contactInput.type = selectedMethod === 'sms' ? 'tel' : 'email';
-        contactInput.placeholder = selectedMethod === 'sms' ? 'Enter phone number' : 'Enter email address';
+    // Only set up reminder functionality if elements exist
+    if (wantRemindersCheckbox && reminderOptions && contactInput && reminderMethodInputs.length > 0) {
+        function updateContactInputRequired() {
+            const isVisible = !reminderOptions.classList.contains('hidden');
+            const selectedMethod = document.querySelector('input[name="reminder-method"]:checked')?.value;
+            if (selectedMethod) {
+                contactInput.required = isVisible && selectedMethod === 'sms';
+                contactInput.type = selectedMethod === 'sms' ? 'tel' : 'email';
+                contactInput.placeholder = selectedMethod === 'sms' ? 'Enter phone number' : 'Enter email address';
+            }
+        }
+
+        wantRemindersCheckbox.addEventListener('change', () => {
+            reminderOptions.classList.toggle('hidden', !wantRemindersCheckbox.checked);
+            updateContactInputRequired();
+        });
+
+        reminderMethodInputs.forEach(input => {
+            input.addEventListener('change', updateContactInputRequired);
+        });
     }
-
-    wantRemindersCheckbox.addEventListener('change', () => {
-        reminderOptions.classList.toggle('hidden', !wantRemindersCheckbox.checked);
-        updateContactInputRequired();
-    });
-
-    reminderMethodInputs.forEach(input => {
-        input.addEventListener('change', updateContactInputRequired);
-    });
 
     
     if (checkoutButton) {
@@ -846,64 +908,14 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('service-details').classList.remove('hidden');
             
             // Function to update the display with current values
-            // const updateDisplay = (info) => {
-            //     // Update the service area message
-            //     const message = document.getElementById('service-area-message');
-            //     if (message) {
-            //         let messageText = `Set up your can-to-curb service below. Your pickup day is ${info.pickupDay}. Trash pickup is ${info.trashFrequency.toLowerCase()}, and recycling is ${info.recycleFrequency.toLowerCase()}`;
-            //         if (info.recycleWeek !== 'none') {
-            //             messageText += ` on ${info.recycleWeek} weeks`;
-            //         }
-            //         if (info.compostFrequency !== 'none') {
-            //             messageText += `. Compost pickup is ${info.compostFrequency.toLowerCase()}`;
-            //             if (info.compostWeek !== 'none') {
-            //                 messageText += ` on ${info.compostWeek} weeks`;
-            //             }
-            //         }
-            //         messageText += '.';
-            //         message.textContent = messageText;
-            //     }
-                
-            // //  Show the service info display
-            //     const serviceInfoDisplay = document.getElementById('service-info-display');
-            //     if (serviceInfoDisplay) {
-            //         let displayHtml = `
-            //             <div class="grid grid-cols-1 gap-4 text-sm">
-            //                 <div>
-            //                     <span class="font-medium">Pickup Day:</span> ${info.pickupDay}
-            //                 </div>
-            //                 <div>
-            //                     <span class="font-medium">Trash Service:</span> ${info.trashFrequency}
-            //                 </div>
-            //                 <div>
-            //                     <span class="font-medium">Recycling Service:</span> ${info.recycleFrequency}`;
-                    
-            //         if (info.recycleWeek !== 'none') {
-            //             displayHtml += ` (${info.recycleWeek} weeks)`;
-            //         }
-                    
-            //         displayHtml += `</div>`;
-                    
-            //         if (info.compostFrequency !== 'none') {
-            //             displayHtml += `
-            //                 <div>
-            //                     <span class="font-medium">Compost Service:</span> ${info.compostFrequency}`;
-            //             if (info.compostWeek !== 'none') {
-            //                 displayHtml += ` (${info.compostWeek} weeks)`;
-            //             }
-            //             displayHtml += `</div>`;
-            //         }
-                    
-            //         displayHtml += `
-            //             </div>
-            //         `;
-            //         serviceInfoDisplay.innerHTML = displayHtml;
-            //     }
-            // };
-            
-            // Function to update form fields
-            const updateFormFields = (info) => {
+            const updateDisplay = (info) => {
                 document.getElementById('service-day').value = info.pickupDay;
+                // Display the checked address
+                const checkedAddress = document.getElementById('checked-address');
+                if (checkedAddress && info.address) {
+                    checkedAddress.textContent = info.address;
+                }
+                
                 // Set the service start date to the next occurrence of the pickup day
                 const startDate = document.getElementById('service-start-date');
                 if (startDate) {
@@ -923,7 +935,6 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Initial display update
             updateDisplay(serviceInfo);
-            updateFormFields(serviceInfo);
             
             // Initial price calculation
             updateTotalPrice();
@@ -971,7 +982,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         // Handle cancel button click
                         document.getElementById('cancel-service-info').addEventListener('click', () => {
                             // Restore original values
-                            updateFormFields(originalServiceInfo);
+                            updateDisplay(originalServiceInfo);
                             
                             // Show display and hide form
                             serviceInfoDisplay.classList.remove('hidden');
@@ -985,5 +996,32 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         // If no service info is found, redirect back to the address check page
         window.location.href = '/';
+    }
+
+    // Add reminder form toggle functionality
+    const reminderButton = document.getElementById('reminderButton');
+    const reminderForm = document.querySelector('.reminder-form');
+    const backToServiceButtons = document.querySelectorAll('.back-to-service');
+
+    console.log('Reminder Button:', reminderButton);
+    console.log('Reminder Form:', reminderForm);
+    console.log('Back to Service Buttons:', backToServiceButtons);
+
+    if (reminderButton && reminderForm) {
+        reminderButton.addEventListener('click', () => {
+            console.log('Reminder button clicked');
+            reminderForm.classList.remove('hidden');
+            reminderButton.classList.add('hidden');
+        });
+
+        backToServiceButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                console.log('Back to service button clicked');
+                reminderForm.classList.add('hidden');
+                reminderButton.classList.remove('hidden');
+            });
+        });
+    } else {
+        console.log('Some elements are missing');
     }
 });
