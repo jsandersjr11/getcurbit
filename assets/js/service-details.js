@@ -1,9 +1,3 @@
-// Pricing constants
-const BASE_PRICE = 39;
-const WEEKLY_PRICE = 10;
-const BIWEEKLY_PRICE = 5;
-const MONTHLY_PRICE = 2.50;
-
 // Function to initialize input steppers
 function initializeStepper(stepper) {
     const input = stepper.querySelector('input[type="number"]');
@@ -41,9 +35,16 @@ function initializeStepper(stepper) {
 // Constants for pricing
 const BASE_FEE = 29;
 const SERVICE_PRICES = {
-    Weekly: 10,
+    'Weekly': 10,
     'Bi-weekly': 5,
-    Monthly: 2.50
+    'Monthly': 2.50
+};
+
+// Service price mapping for Stripe checkout
+const servicePrices = {
+    'Weekly': 1000,
+    'Bi-weekly': 500,
+    'Monthly': 250
 };
 
 // Function to calculate price for a service
@@ -119,7 +120,7 @@ function handleFrequencyChange(binType) {
         }
     }
     
-    updateTotalPrice();
+    updatePricing();
 }
 
 // Calendar functionality
@@ -134,8 +135,6 @@ class Calendar {
         // Get service day from sessionStorage
         const serviceInfo = JSON.parse(sessionStorage.getItem('serviceInfo'));
         this.serviceDay = serviceInfo?.pickupDay || 'Monday';
-        this.recycleWeek = serviceInfo?.recycleWeek || 'none';
-        this.compostWeek = serviceInfo?.compostWeek || 'none';
         
         // Set default date to next service day that's at least 1.5 weeks out
         this.setDefaultDate();
@@ -148,11 +147,19 @@ class Calendar {
         this.selectedDateElement = document.getElementById('selected-date');
         this.hiddenInput = document.getElementById('service-start-date');
 
+        // Bind methods
+        this.toggleDropdown = this.toggleDropdown.bind(this);
+        this.handleClickOutside = this.handleClickOutside.bind(this);
+        this.prevMonth = this.prevMonth.bind(this);
+        this.nextMonth = this.nextMonth.bind(this);
+        this.render = this.render.bind(this);
+        this.selectDate = this.selectDate.bind(this);
+
         // Bind event listeners
-        this.trigger.addEventListener('click', () => this.toggleDropdown());
-        this.dropdown.querySelector('.prev-month').addEventListener('click', () => this.prevMonth());
-        this.dropdown.querySelector('.next-month').addEventListener('click', () => this.nextMonth());
-        document.addEventListener('click', (e) => this.handleClickOutside(e));
+        this.trigger.addEventListener('click', this.toggleDropdown);
+        this.dropdown.querySelector('.prev-month').addEventListener('click', this.prevMonth);
+        this.dropdown.querySelector('.next-month').addEventListener('click', this.nextMonth);
+        document.addEventListener('click', this.handleClickOutside);
 
         // Initial render
         this.render();
@@ -272,6 +279,132 @@ class Calendar {
 // Load Stripe.js
 const stripe = Stripe('pk_live_51PhSkTGwVRYqqGA7KZ1MyQdPAkVQEjogtTdf7HU1HaD0VC39103UpCX2oKw4TQWQB17QL41ql2DHmprq1CxozbMa00bWPEYCoa');
 
+// Function to proceed to Stripe checkout
+async function proceedToStripeCheckout() {
+    try {
+        // Get selected services data
+        const services = ['trash', 'recycling', 'compost'];
+        const selectedServices = services.reduce((acc, service) => {
+            const container = document.getElementById(`${service}-container`);
+            const checkbox = container?.querySelector('.service-checkbox');
+            
+            if (checkbox?.checked) {
+                const frequency = document.getElementById(`${service}-bin-frequency`).value;
+                const quantity = document.getElementById(`${service}-quantity`).value;
+                const serviceDay = container.querySelector('select[id^="service-day"]').value;
+                
+                acc[service] = { frequency, quantity, serviceDay };
+            }
+            return acc;
+        }, {});
+        
+        // Get the service start date
+        const startDate = document.getElementById('service-start-date').value;
+        
+        // Save service info to sessionStorage for success page
+        sessionStorage.setItem('serviceInfo', JSON.stringify({
+            services: selectedServices,
+            startDate,
+            reminderMethod: 'email' // Default to email reminders
+        }));
+
+        // Calculate total price in cents
+        const servicePrices = {
+            'Weekly': 1000, // $10.00
+            'Bi-weekly': 500, // $5.00
+            'Monthly': 250 // $2.50
+        };
+
+        let total = 0;
+
+        // Add base fee for trash service
+        if (selectedServices.trash) {
+            total += 2900; // $29.00 base fee
+        }
+
+        // Add per-service pricing
+        Object.entries(selectedServices).forEach(([service, details]) => {
+            const frequency = details.frequency;
+            const quantity = parseInt(details.quantity);
+            const pricePerBin = servicePrices[frequency];
+            total += pricePerBin * quantity;
+        });
+
+        // Create descriptive line items for display
+        const items = Object.entries(selectedServices).map(([service, details]) => {
+            const serviceName = service.charAt(0).toUpperCase() + service.slice(1);
+            const binText = `${details.quantity} bin${details.quantity > 1 ? 's' : ''}`;
+            const pricePerBin = servicePrices[details.frequency] / 100;
+            const pickupText = `${details.frequency} pickup on ${details.serviceDay}s`;
+            return `${serviceName} Service: ${binText} - ${pickupText} ($${pricePerBin.toFixed(2)}/bin/month)`;
+        }).join('\n');
+
+        // Add base fee info if trash service is selected
+        const description = selectedServices.trash 
+            ? `Base Service Fee: $29.00/month\n${items}`
+            : items;
+
+        // Create Stripe checkout
+        const result = await stripe.redirectToCheckout({
+            lineItems: [{
+                price_data: {
+                    currency: 'usd',
+                    product_data: {
+                        name: 'Curbit Service Subscription',
+                        description: description
+                    },
+                    unit_amount: total,
+                    recurring: {
+                        interval: 'month'
+                    }
+                },
+                quantity: 1
+            }],
+            mode: 'subscription',
+            successUrl: 'https://getcurbit.com/success?services=' + encodeURIComponent(JSON.stringify(selectedServices)) + '&startDate=' + encodeURIComponent(startDate),
+            cancelUrl: 'https://getcurbit.com/signup/service-details',
+            billingAddressCollection: 'required',
+            shippingAddressCollection: {
+                allowedCountries: ['US']
+            },
+            // Only include customerEmail if we have one
+            ...(sessionStorage.getItem('userEmail') ? { customerEmail: sessionStorage.getItem('userEmail') } : {})
+        });
+        
+        if (result.error) {
+            console.error('Stripe Error:', result.error);
+            let errorMessage = 'An error occurred. Please try again.';
+            
+            // Handle specific error cases
+            switch (result.error.code) {
+                case 'payment_intent_unexpected_state':
+                    errorMessage = 'Your previous payment is still processing. Please wait a moment and try again.';
+                    break;
+                case 'email_invalid':
+                    errorMessage = 'Please provide a valid email address.';
+                    break;
+                case 'expired_card':
+                case 'incorrect_cvc':
+                case 'card_declined':
+                    errorMessage = 'There was an issue with your card. Please try a different payment method.';
+                    break;
+                case 'rate_limit':
+                    errorMessage = 'Too many attempts. Please wait a moment and try again.';
+                    break;
+            }
+
+            showErrorMessage(errorMessage);
+            return false;
+        }
+        
+        return true;
+    } catch (error) {
+        console.error('Checkout Error:', error);
+        showErrorMessage('Unable to start checkout. Please try again.');
+        return false;
+    }
+}
+
 // Function to save form state
 function saveFormState() {
     const formState = {
@@ -310,9 +443,98 @@ function restoreFormState() {
     }
 }
 
-// Call restoreFormState when the page loads
+// Function to set up all event listeners
+function setupEventListeners() {
+    // Initialize steppers
+    const steppers = document.querySelectorAll('.quantity-stepper');
+    steppers.forEach(initializeStepper);
+    
+    // Initialize calendar
+    new Calendar();
+    
+    // Service types configuration
+    const services = ['trash', 'recycling', 'compost'];
+    
+    // Set up service checkbox handlers
+    services.forEach(service => {
+        const container = document.getElementById(`${service}-container`);
+        if (container) {
+            const checkbox = container.querySelector('.service-checkbox');
+            const detailsContainer = container.querySelector('.service-details');
+            
+            // Set up checkbox change handler
+            checkbox?.addEventListener('change', () => {
+                toggleServiceDetails(checkbox, detailsContainer);
+                updatePricing();
+            });
+            
+            // Set up frequency change handler
+            const frequency = document.getElementById(`${service}-bin-frequency`);
+            frequency?.addEventListener('change', () => {
+                handleFrequencyChange(service);
+                updatePricing();
+            });
+            
+            // Set up quantity change handler
+            const quantity = document.getElementById(`${service}-quantity`);
+            quantity?.addEventListener('change', updatePricing);
+            
+            // Set up service day change handler
+            const daySelect = container.querySelector('select[id^="service-day"]');
+            daySelect?.addEventListener('change', updatePricing);
+        }
+    });
+    
+    // Set up form submission handler
+    const form = document.querySelector('form');
+    form?.addEventListener('submit', handleCheckout);
+    
+    // Set up service day change handler for calendar
+    const serviceDaySelect = document.getElementById('service-day');
+    if (serviceDaySelect) {
+        serviceDaySelect.addEventListener('change', updateStartDateDisplay);
+    }
+    
+    // Set up reminder preferences handlers
+    const wantRemindersCheckbox = document.getElementById('want-reminders');
+    const reminderOptions = document.getElementById('reminder-options');
+    if (wantRemindersCheckbox && reminderOptions) {
+        wantRemindersCheckbox.addEventListener('change', () => {
+            reminderOptions.classList.toggle('hidden', !wantRemindersCheckbox.checked);
+            updateContactInputRequired();
+        });
+    }
+    
+    // Add reminder form toggle functionality
+    const reminderButton = document.getElementById('reminderButton');
+    const reminderForm = document.querySelector('.reminder-form');
+    const backToServiceButtons = document.querySelectorAll('.back-to-service');
+
+    if (reminderButton && reminderForm) {
+        reminderButton.addEventListener('click', () => {
+            reminderForm.classList.remove('hidden');
+            reminderButton.classList.add('hidden');
+        });
+
+        backToServiceButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                reminderForm.classList.add('hidden');
+                reminderButton.classList.remove('hidden');
+            });
+        });
+    }
+    
+    // Initial price update
+    updatePricing();
+    
+    // Initialize start date display
+    updateStartDateDisplay();
+}
+
+// Call restoreFormState and setup event listeners when the page loads
 document.addEventListener('DOMContentLoaded', () => {
     restoreFormState();
+    setupEventListeners();
 
     // Setup reminder button functionality
     const reminderButton = document.getElementById('reminderButton');
@@ -370,144 +592,191 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// Supabase Integration
+async function createUserProfile(userData) {
+    try {
+        const { data: profile, error } = await supabase
+            .from('profiles')
+            .insert([{
+                full_name: userData.fullName,
+                email: userData.email,
+                phone: userData.phone,
+                address_line1: userData.address,
+                city: userData.city,
+                state: userData.state,
+                zip_code: userData.zipCode,
+                is_in_service_area: userData.isInServiceArea,
+                reminder_only: userData.reminderOnly
+            }])
+            .select()
+            .single();
+
+        if (error) throw error;
+        return profile;
+    } catch (error) {
+        console.error('Error creating profile:', error);
+        throw error;
+    }
+}
+
+async function createServiceSchedule(profileId, serviceData) {
+    try {
+        const { data: schedule, error } = await supabase
+            .from('service_schedules')
+            .insert([{
+                profile_id: profileId,
+                service_type: serviceData.type,
+                pickup_day: serviceData.pickupDay,
+                frequency: serviceData.frequency,
+                start_date: serviceData.startDate,
+                is_override: serviceData.isOverride,
+                original_radar_schedule: serviceData.originalSchedule
+            }])
+            .select();
+
+        if (error) throw error;
+        return schedule;
+    } catch (error) {
+        console.error('Error creating service schedule:', error);
+        throw error;
+    }
+}
+
+async function createServiceSubscription(profileId, subscriptionData) {
+    try {
+        const { data: subscription, error } = await supabase
+            .from('service_subscriptions')
+            .insert([{
+                profile_id: profileId,
+                service_type: subscriptionData.type,
+                bin_quantity: subscriptionData.quantity,
+                subscription_status: 'pending',
+                start_date: subscriptionData.startDate
+            }])
+            .select();
+
+        if (error) throw error;
+        return subscription;
+    } catch (error) {
+        console.error('Error creating subscription:', error);
+        throw error;
+    }
+}
+
 // Function to handle checkout
 async function handleCheckout(event) {
-    console.log('Checkout process started...');
     event.preventDefault();
     
-    const checkoutButton = document.getElementById('checkout-button');
-    const buttonText = checkoutButton.querySelector('.button-text');
-    const buttonLoading = checkoutButton.querySelector('.button-loading');
-    const returnButton = document.getElementById('return-to-form');
-    
     // Show loading state
-    buttonText.classList.add('hidden');
-    buttonLoading.classList.remove('hidden');
-    checkoutButton.disabled = true;
+    const checkoutButton = document.getElementById('checkout-button');
+    checkoutButton.querySelector('.button-text').classList.add('hidden');
+    checkoutButton.querySelector('.button-loading').classList.remove('hidden');
     
     try {
-        // Create line items array for Stripe Checkout
-        console.log('Creating line items...');
-        const lineItems = [];
-        
-        // Price IDs for different services and frequencies
-        const priceIds = {
-            base: 'price_1Qqaw2GwVRYqqGA7sZCyuVrB',    // Base fee
-            trash: {
-                Weekly: 'price_1QqaaCGwVRYqqGA7ZHzIxqq2',
-                'Bi-weekly': 'price_1Qqad7GwVRYqqGA7d7ErdWeP',
-                Monthly: 'price_1Qqai4GwVRYqqGA7lFtNSBlT'
-            },
-            recycling: {
-                Weekly: 'price_1QqakvGwVRYqqGA7Kx9IlYK6',
-                'Bi-weekly': 'price_1Qqan9GwVRYqqGA7HeiQHCO0',
-                Monthly: 'price_1QqapDGwVRYqqGA7bqBEllyl'
-            },
-            compost: {
-                Weekly: 'price_1Qqar2GwVRYqqGA7Bk7bUOm8',
-                'Bi-weekly': 'price_1QqasbGwVRYqqGA7xENHMXuL',
-                Monthly: 'price_1QqatzGwVRYqqGA7J5YsH3vu'
-            }
+        // Get form data
+        const formData = new FormData(event.target);
+        const userData = {
+            fullName: formData.get('full-name'),
+            email: formData.get('email'),
+            phone: formData.get('phone'),
+            address: formData.get('address'),
+            city: formData.get('city'),
+            state: formData.get('state'),
+            zipCode: formData.get('zip'),
+            isInServiceArea: sessionStorage.getItem('isInServiceArea') === 'true',
+            reminderOnly: document.getElementById('want-reminders').checked && !hasActiveServices()
         };
-
-        // Add base price
-        lineItems.push({
-            price: priceIds.base,
-            quantity: 1
-        });
-
-        // Handle trash bins
-        const trashFrequency = document.getElementById('trash-bin-frequency').value;
-        const trashQuantity = parseInt(document.getElementById('trash-quantity').value);
         
-        if (trashFrequency !== 'none' && trashQuantity > 0) {
-            const priceId = priceIds.trash[trashFrequency];
-            if (priceId) {
-                lineItems.push({
-                    price: priceId,
-                    quantity: trashQuantity
-                });
-            }
+        // Save email to sessionStorage for Stripe checkout
+        if (userData.email) {
+            sessionStorage.setItem('userEmail', userData.email);
         }
 
-        // Handle recycling bins
-        const recyclingFrequency = document.getElementById('recycling-bin-frequency').value;
-        const recyclingQuantity = parseInt(document.getElementById('recycling-quantity').value);
-        
-        if (recyclingFrequency !== 'none' && recyclingQuantity > 0) {
-            const priceId = priceIds.recycling[recyclingFrequency];
-            if (priceId) {
-                lineItems.push({
-                    price: priceId,
-                    quantity: recyclingQuantity
-                });
-            }
-        }
+        // Create user profile
+        const profile = await createUserProfile(userData);
 
-        // Handle compost bins
-        const compostFrequency = document.getElementById('compost-bin-frequency')?.value || 'none';
-        const compostQuantity = parseInt(document.getElementById('compost-quantity')?.value || '0');
-        
-        if (compostFrequency !== 'none' && compostQuantity > 0) {
-            const priceId = priceIds.compost[compostFrequency];
-            if (priceId) {
-                lineItems.push({
-                    price: priceId,
-                    quantity: compostQuantity
-                });
-            }
-        };
-
-        console.log('Line items prepared:', lineItems);
-        console.log('Redirecting to Stripe Checkout...');
-        
-        // Determine if we're in development or production
-        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        
-        // Define success and cancel URLs
-        const successUrl = isLocalhost
-            ? 'https://getcurbit.com/signup/success.html'  // Production success URL
-            : window.location.origin + '/signup/success.html';
-        const cancelUrl = isLocalhost
-            ? 'https://getcurbit.com/signup/service-details.html'  // Production cancel URL
-            : window.location.href;
-
-        // Create a Checkout Session
-        try {
-            // Save form state before redirecting
-            saveFormState();
+        // If user wants reminders, create service schedules
+        if (document.getElementById('want-reminders').checked) {
+            const services = ['trash', 'recycling', 'compost'];
             
-            // Redirect to Stripe Checkout
-            const { error } = await stripe.redirectToCheckout({
-                mode: 'subscription',
-                lineItems: lineItems,
-                successUrl: successUrl,
-                cancelUrl: cancelUrl
-            });
-
-            if (error) {
-                throw error;
-            }
-        } catch (checkoutError) {
-            console.error('Stripe Checkout Error:', checkoutError);
-            
-            if (checkoutError.message?.includes('domain') && isLocalhost) {
-                alert('Development Environment Notice: Please use the production URL (https://getcurbit.com) for Stripe Checkout. Local development domains are not supported for security reasons.');
-            } else {
-                alert('There was an error initiating checkout. Please try again or contact support if the issue persists.');
+            for (const service of services) {
+                const container = document.getElementById(`${service}-container`);
+                const daySelect = container.querySelector('select[id^="service-day"]');
+                const frequencySelect = document.getElementById(`${service}-bin-frequency`);
+                
+                if (daySelect && frequencySelect) {
+                    await createServiceSchedule(profile.id, {
+                        type: service,
+                        pickupDay: daySelect.value,
+                        frequency: frequencySelect.value,
+                        startDate: document.getElementById('service-start-date').value,
+                        isOverride: false,
+                        originalSchedule: null
+                    });
+                }
             }
         }
+
+        // If user is signing up for service, create service subscriptions
+        if (hasActiveServices()) {
+            const services = ['trash', 'recycling', 'compost'];
+            
+            for (const service of services) {
+                const container = document.getElementById(`${service}-container`);
+                const checkbox = container.querySelector('.service-checkbox');
+                const quantity = document.getElementById(`${service}-quantity`);
+                
+                if (checkbox.checked && quantity) {
+                    await createServiceSubscription(profile.id, {
+                        type: service,
+                        quantity: parseInt(quantity.value),
+                        startDate: document.getElementById('service-start-date').value
+                    });
+                }
+            }
+            
+            // Proceed with Stripe checkout
+            await proceedToStripeCheckout();
+            return;
+        }
+
+        // Show success message for reminder-only signup
+        showSuccessMessage('You have successfully signed up for reminders!');
+        
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error during signup:', error);
+        showErrorMessage('There was an error processing your request. Please try again.');
+    } finally {
         // Reset button state
-        buttonText.classList.remove('hidden');
-        buttonLoading.classList.add('hidden');
-        checkoutButton.disabled = false;
-        returnButton.classList.remove('hidden');
-        
-        // Show error to user
-        alert(error.message || 'There was an error processing your payment. Please try again.');
+        const checkoutButton = document.getElementById('checkout-button');
+        if (checkoutButton) {
+            checkoutButton.querySelector('.button-text').classList.remove('hidden');
+            checkoutButton.querySelector('.button-loading').classList.add('hidden');
+        }
     }
+}
+
+// Helper function to check if any services are selected
+function hasActiveServices() {
+    return ['trash', 'recycling', 'compost'].some(service => {
+        const container = document.getElementById(`${service}-container`);
+        return container.querySelector('.service-checkbox').checked;
+    });
+}
+
+// Helper functions for user feedback
+function showSuccessMessage(message) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'success-message';
+    messageDiv.textContent = message;
+    document.querySelector('form').appendChild(messageDiv);
+}
+
+function showErrorMessage(message) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'error-message';
+    messageDiv.textContent = message;
+    document.querySelector('form').appendChild(messageDiv);
 }
 
 // Function to handle return to form
@@ -750,36 +1019,103 @@ document.addEventListener('DOMContentLoaded', () => {
         // Get the service start date
         const startDate = document.getElementById('service-start-date').value;
         
-        // Create Stripe Hosted Page checkout
-        fetch('/create-checkout-session', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
+        // Initialize Stripe
+        const stripe = Stripe('pk_live_51PhSkTGwVRYqqGA7KZ1MyQdPAkVQEjogtTdf7HU1HaD0VC39103UpCX2oKw4TQWQB17QL41ql2DHmprq1CxozbMa00bWPEYCoa');
+
+        // Calculate total price in cents
+        const servicePrices = {
+            'Weekly': 1000, // $10.00
+            'Bi-weekly': 500, // $5.00
+            'Monthly': 250 // $2.50
+        };
+
+        let total = 0;
+
+        // Add base fee for trash service
+        if (selectedServices.trash) {
+            total += 2900; // $29.00 base fee
+        }
+
+        // Add per-service pricing
+        Object.entries(selectedServices).forEach(([service, details]) => {
+            const frequency = details.frequency;
+            const quantity = parseInt(details.quantity);
+            const pricePerBin = servicePrices[frequency];
+            total += pricePerBin * quantity;
+        });
+
+        // Create descriptive line items for display
+        const items = Object.entries(selectedServices).map(([service, details]) => {
+            const serviceName = service.charAt(0).toUpperCase() + service.slice(1);
+            const binText = `${details.quantity} bin${details.quantity > 1 ? 's' : ''}`;
+            const pricePerBin = servicePrices[details.frequency] / 100;
+            const pickupText = `${details.frequency} pickup on ${details.serviceDay}s`;
+            return `${serviceName} Service: ${binText} - ${pickupText} ($${pricePerBin.toFixed(2)}/bin/month)`;
+        }).join('\n');
+
+        // Add base fee info if trash service is selected
+        const description = selectedServices.trash 
+            ? `Base Service Fee: $29.00/month\n${items}`
+            : items;
+
+        // Create Stripe checkout
+        stripe.redirectToCheckout({
+            lineItems: [{
+                price_data: {
+                    currency: 'usd',
+                    product_data: {
+                        name: 'Curbit Service Subscription',
+                        description: description
+                    },
+                    unit_amount: total,
+                    recurring: {
+                        interval: 'month'
+                    }
+                },
+                quantity: 1
+            }],
+            mode: 'subscription',
+            successUrl: 'https://getcurbit.com/success?services=' + encodeURIComponent(JSON.stringify(selectedServices)) + '&startDate=' + encodeURIComponent(startDate),
+            cancelUrl: 'https://getcurbit.com/signup/service-details',
+            billingAddressCollection: 'required',
+            shippingAddressCollection: {
+                allowedCountries: ['US']
             },
-            body: JSON.stringify({
-                services: selectedServices,
-                startDate: startDate,
-                collect: {
-                    phone: true,
-                    shipping_address: true,
-                    billing_address: true,
-                    email: true,
-                    name: true
-                }
-            })
+            // Only include customerEmail if we have one
+            ...(sessionStorage.getItem('userEmail') ? { customerEmail: sessionStorage.getItem('userEmail') } : {})
         })
-        .then(response => response.json())
-        .then(result => {
-            if (result.url) {
-                window.location.href = result.url;
-            } else {
-                throw new Error('No checkout URL received');
+        .then(function(result) {
+            if (result.error) {
+                console.error('Stripe Error:', result.error);
+                let errorMessage = 'An error occurred. Please try again.';
+                
+                // Handle specific error cases
+                switch (result.error.code) {
+                    case 'payment_intent_unexpected_state':
+                        errorMessage = 'Your previous payment is still processing. Please wait a moment and try again.';
+                        break;
+                    case 'email_invalid':
+                        errorMessage = 'Please provide a valid email address.';
+                        break;
+                    case 'expired_card':
+                    case 'incorrect_cvc':
+                    case 'card_declined':
+                        errorMessage = 'There was an issue with your card. Please try a different payment method.';
+                        break;
+                    case 'rate_limit':
+                        errorMessage = 'Too many attempts. Please wait a moment and try again.';
+                        break;
+                }
+
+                showError(errorMessage);
             }
         })
-        .catch(error => {
-            console.error('Error:', error);
-            showError('An error occurred. Please try again.');
-            // Reset button state
+        .catch(function(error) {
+            console.error('Checkout Error:', error);
+            showError('Unable to start checkout. Please try again.');
+        })
+        .finally(function() {
+            // Always reset button state
             checkoutButton.querySelector('.button-text').classList.remove('hidden');
             checkoutButton.querySelector('.button-loading').classList.add('hidden');
         });
@@ -933,6 +1269,119 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('recycling-bin-frequency').value = info.recycleFrequency;
             };
             
+            // Function to generate schedule summary
+            function generateScheduleSummary() {
+                const schedules = [];
+                
+                // Check each service type
+                const services = [
+                    { id: 'trash', emoji: '🗑️', label: 'Trash' },
+                    { id: 'recycling', emoji: '♻️', label: 'Recycling' },
+                    { id: 'compost', emoji: '🍃', label: 'Compost' }
+                ];
+
+                services.forEach(service => {
+                    const container = document.getElementById(`${service.id}-container`);
+                    const checkbox = container.querySelector('.service-checkbox');
+                    
+                    if (checkbox.checked) {
+                        const serviceDay = container.querySelector('select[id^="service-day"]').value;
+                        const frequency = document.getElementById(`${service.id}-bin-frequency`).value;
+                        const quantity = document.getElementById(`${service.id}-quantity`).value;
+                        
+                        if (serviceDay && frequency !== 'none') {
+                            const frequencyLabel = frequency.toLowerCase();
+                            schedules.push(
+                                `${service.emoji} ${service.label}: ${quantity} can${quantity > 1 ? 's' : ''}, ` +
+                                `${serviceDay}s ${frequencyLabel}`
+                            );
+                        }
+                    }
+                });
+
+                return schedules;
+            }
+
+            // Function to show confirmation modal
+            function showConfirmationModal(event) {
+                event.preventDefault();
+                const schedules = generateScheduleSummary();
+                if (schedules.length === 0) {
+                    showErrorMessage('Please select at least one service schedule');
+                    return;
+                }
+
+                const modal = document.getElementById('confirmation-modal');
+                const scheduleSummary = modal.querySelector('.schedule-summary');
+                scheduleSummary.innerHTML = schedules.map(schedule => `<p>${schedule}</p>`).join('');
+                modal.classList.remove('hidden');
+            }
+
+            // Function to handle reminder signup
+            async function handleReminderSignup() {
+                try {
+                    const services = [];
+                    ['trash', 'recycling', 'compost'].forEach(serviceType => {
+                        const container = document.getElementById(`${serviceType}-container`);
+                        const checkbox = container.querySelector('.service-checkbox');
+                        
+                        if (checkbox.checked) {
+                            const serviceDay = container.querySelector('select[id^="service-day"]').value;
+                            const frequency = document.getElementById(`${serviceType}-bin-frequency`).value;
+                            if (serviceDay && frequency !== 'none') {
+                                services.push({
+                                    type: serviceType,
+                                    pickupDay: serviceDay.toLowerCase(),
+                                    frequency: frequency === 'Bi-weekly' ? 'biweekly' : frequency.toLowerCase(),
+                                    startDate: document.getElementById('service-start-date').value
+                                });
+                            }
+                        }
+                    });
+
+                    if (services.length === 0) {
+                        showErrorMessage('Please select at least one service');
+                        return;
+                    }
+
+                    const result = await handleReminderSignup({
+                        services,
+                        email: document.getElementById('email').value,
+                        phone: document.getElementById('phone').value,
+                        fullName: document.getElementById('full-name').value,
+                        address: document.getElementById('address').value,
+                        city: document.getElementById('city').value,
+                        state: document.getElementById('state').value,
+                        zipCode: document.getElementById('zip').value
+                    });
+                    
+                    if (result.success) {
+                        showSuccessMessage('Successfully signed up for reminders!');
+                        setTimeout(() => {
+                            window.location.href = '/dashboard';
+                        }, 2000);
+                    } else {
+                        showErrorMessage(result.message || 'Error signing up for reminders');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showErrorMessage('An unexpected error occurred');
+                }
+            }
+
+            // Add event listeners for modal buttons
+            document.getElementById('edit-schedule').addEventListener('click', () => {
+                document.getElementById('confirmation-modal').classList.add('hidden');
+            });
+
+            document.getElementById('confirm-schedule').addEventListener('click', async () => {
+                document.getElementById('confirmation-modal').classList.add('hidden');
+                await handleReminderSignup();
+            });
+
+            // Add submit event listener to the form
+            document.getElementById('reminderForm').addEventListener('submit', showConfirmationModal);
+
             // Initial display update
             updateDisplay(serviceInfo);
             
@@ -998,30 +1447,5 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = '/';
     }
 
-    // Add reminder form toggle functionality
-    const reminderButton = document.getElementById('reminderButton');
-    const reminderForm = document.querySelector('.reminder-form');
-    const backToServiceButtons = document.querySelectorAll('.back-to-service');
-
-    console.log('Reminder Button:', reminderButton);
-    console.log('Reminder Form:', reminderForm);
-    console.log('Back to Service Buttons:', backToServiceButtons);
-
-    if (reminderButton && reminderForm) {
-        reminderButton.addEventListener('click', () => {
-            console.log('Reminder button clicked');
-            reminderForm.classList.remove('hidden');
-            reminderButton.classList.add('hidden');
-        });
-
-        backToServiceButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                console.log('Back to service button clicked');
-                reminderForm.classList.add('hidden');
-                reminderButton.classList.remove('hidden');
-            });
-        });
-    } else {
-        console.log('Some elements are missing');
-    }
+    // Event listeners for reminder form are now set up in the setupEventListeners function
 });

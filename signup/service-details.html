@@ -500,10 +500,10 @@
                         </div>
 
                         <div class="space-y-4">
-                            <button type="submit" class="primary-button w-full">
-                                Set Up Free Reminders
-                            </button>
-
+                            <!-- Service Schedule Form -->
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">Save Schedule & Set Up Reminders</button>
+                    </div>
                             <button type="button" class="secondary-button w-full back-to-service">
                                 Back to Service Sign Up
                             </button>
@@ -527,11 +527,38 @@
                             </div>
                         </div>
                     </div>
+                    
+
+                    <!-- Confirmation Modal -->
+                    <div id="confirmation-modal" class="modal hidden">
+                        <div class="modal-content">
+                            <h3>Confirm Your Service Schedule</h3>
+                            <div class="schedule-summary"></div>
+                            <div class="notification-preferences">
+                                <p>You'll receive reminders:</p>
+                                <ul>
+                                    <li>The day before each pickup</li>
+                                    <li>Via email and/or SMS based on your contact preferences</li>
+                                </ul>
+                            </div>
+                            <div class="modal-actions">
+                                <button type="button" class="btn-secondary" id="edit-schedule">Edit Schedule</button>
+                                <button type="button" class="btn-primary" id="confirm-schedule">Confirm Schedule</button>
+                            </div>
+                        </div>
+                    </div>
                 </form>
+                <script src="../assets/js/reminders.js" type="module"></script>
             </div>
         </div>
     </div>
-    <script src="service-details.js"></script>
+    <!-- External Dependencies -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/radar-sdk-js@latest/dist/radar.min.js"></script>
+    <script src="https://js.stripe.com/v3/"></script>
+    
+    <!-- Internal Scripts -->
+    <script src="../assets/js/supabase-client.js"></script>
+    <script src="../assets/js/service-details.js"></script>
 </body>
 </html>
-

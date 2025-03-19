@@ -1,0 +1,44 @@
+/* Success Page Styles */
+.service-item {
+    transition: all 0.2s ease-in-out;
+}
+
+.service-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.reminder-preferences {
+    border: 1px solid #e5e7eb;
+}
+
+.reminder-preferences input[type="radio"] {
+    accent-color: #10B981;
+}
+
+.reminder-preferences label {
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.reminder-preferences label:hover {
+    color: #10B981;
+}
+
+.loading-spinner {
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #10B981;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.bg-gradient {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+}
