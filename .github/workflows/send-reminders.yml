@@ -1,0 +1,28 @@
+name: Send Daily Reminders
+
+on:
+  schedule:
+    # Run at 7 PM UTC (adjust based on your timezone)
+    - cron: '0 19 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  send-reminders:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+          
+      - name: Install dependencies
+        run: npm install notification-api-js
+        
+      - name: Process Reminders
+        env:
+          NOTIFICATION_API_CLIENT_ID: ${{ secrets.NOTIFICATION_API_CLIENT_ID }}
+          NOTIFICATION_API_USER_ID: ${{ secrets.NOTIFICATION_API_USER_ID }}
+        run: node -e "require('./assets/js/reminders.js').processReminders()"
