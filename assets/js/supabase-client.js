@@ -118,11 +118,34 @@ async function logReminder(reminderData) {
     }
 }
 
+// Function to create service subscription
+async function createServiceSubscription(profileId, subscriptionData) {
+    try {
+        const { data: subscription, error } = await supabase
+            .from('service_subscriptions')
+            .insert([{
+                profile_id: profileId,
+                service_type: subscriptionData.type,
+                bin_quantity: subscriptionData.quantity,
+                subscription_status: 'pending',
+                start_date: subscriptionData.startDate
+            }])
+            .select();
+
+        if (error) throw error;
+        return subscription;
+    } catch (error) {
+        console.error('Error creating service subscription:', error);
+        throw error;
+    }
+}
+
 export {
     supabase,
     createUserProfile,
     saveServiceSchedule,
     getTomorrowReminders,
     isRecyclingWeek,
-    logReminder
+    logReminder,
+    createServiceSubscription
 };

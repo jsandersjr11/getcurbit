@@ -38,27 +38,43 @@ module.exports = async function handler(req, res) {
             // Get customer details from Stripe
             const customer = await stripe.customers.retrieve(session.customer);
             const subscription = await stripe.subscriptions.retrieve(session.subscription);
-
-            // Parse metadata from the subscription
-            const services = JSON.parse(subscription.metadata.services || '{}');
-            const startDate = subscription.metadata.startDate;
-
+            
+            // Parse metadata from the session
+            let userData, serviceSchedules, serviceSubscriptions;
+            try {
+                userData = JSON.parse(session.metadata.userData || '{}');
+                serviceSchedules = JSON.parse(session.metadata.serviceSchedules || '[]');
+                serviceSubscriptions = JSON.parse(session.metadata.serviceSubscriptions || '[]');
+            } catch (error) {
+                console.error('Error parsing metadata:', error);
+                // Fallback to old method if metadata parsing fails
+                userData = {
+                    email: customer.email,
+                    fullName: customer.name,
+                    phone: customer.phone,
+                    address: customer.shipping?.address?.line1,
+                    city: customer.shipping?.address?.city,
+                    state: customer.shipping?.address?.state,
+                    zipCode: customer.shipping?.address?.postal_code
+                };
+            }
+            
             // Create user profile in Supabase
             const { data: profile, error: profileError } = await supabase
                 .from('profiles')
                 .upsert([{
                     stripe_customer_id: customer.id,
                     stripe_subscription_id: subscription.id,
-                    email: customer.email,
-                    full_name: customer.name,
-                    phone: customer.phone,
-                    address_line1: customer.shipping?.address?.line1,
+                    email: userData.email || customer.email,
+                    full_name: userData.fullName || customer.name,
+                    phone: userData.phone || customer.phone,
+                    address_line1: userData.address || customer.shipping?.address?.line1,
                     address_line2: customer.shipping?.address?.line2,
-                    city: customer.shipping?.address?.city,
-                    state: customer.shipping?.address?.state,
-                    zip_code: customer.shipping?.address?.postal_code,
-                    service_start_date: startDate,
-                    services: services,
+                    city: userData.city || customer.shipping?.address?.city,
+                    state: userData.state || customer.shipping?.address?.state,
+                    zip_code: userData.zipCode || customer.shipping?.address?.postal_code,
+                    is_in_service_area: userData.isInServiceArea || true,
+                    reminder_only: userData.reminderOnly || false,
                     reminder_preferences: {
                         method: 'email', // Default to email
                         enabled: true
@@ -70,22 +86,46 @@ module.exports = async function handler(req, res) {
             if (profileError) {
                 throw new Error(`Error creating profile: ${profileError.message}`);
             }
+            
+            // Process service schedules from metadata
+            if (serviceSchedules && serviceSchedules.length > 0) {
+                const schedules = serviceSchedules.map(schedule => ({
+                    profile_id: profile.id,
+                    service_type: schedule.type,
+                    pickup_day: schedule.pickupDay.toLowerCase(),
+                    frequency: schedule.frequency.toLowerCase(),
+                    start_date: schedule.startDate,
+                    is_override: schedule.isOverride || false,
+                    original_radar_schedule: schedule.originalSchedule
+                }));
 
-            // Save service schedules
-            const schedules = Object.entries(services).map(([serviceType, details]) => ({
-                profile_id: profile.id,
-                service_type: serviceType,
-                frequency: details.frequency,
-                quantity: details.quantity,
-                pickup_day: details.serviceDay
-            }));
 
-            const { error: scheduleError } = await supabase
-                .from('service_schedules')
-                .upsert(schedules);
+                const { error: scheduleError } = await supabase
+                    .from('service_schedules')
+                    .upsert(schedules);
 
-            if (scheduleError) {
-                throw new Error(`Error saving schedules: ${scheduleError.message}`);
+                if (scheduleError) {
+                    throw new Error(`Error saving schedules: ${scheduleError.message}`);
+                }
+            }
+            
+            // Process service subscriptions from metadata
+            if (serviceSubscriptions && serviceSubscriptions.length > 0) {
+                const subscriptions = serviceSubscriptions.map(sub => ({
+                    profile_id: profile.id,
+                    service_type: sub.type,
+                    bin_quantity: sub.quantity,
+                    subscription_status: 'active',
+                    start_date: sub.startDate
+                }));
+                
+                const { error: subscriptionError } = await supabase
+                    .from('service_subscriptions')
+                    .upsert(subscriptions);
+                    
+                if (subscriptionError) {
+                    throw new Error(`Error saving subscriptions: ${subscriptionError.message}`);
+                }
             }
 
             // Set up NotificationAPI for automated reminders

@@ -500,13 +500,55 @@
                         </div>
 
                         <div class="space-y-4">
-                            <!-- Service Schedule Form -->
-                    <div class="form-actions">
-                        <button type="submit" class="btn-primary">Save Schedule & Set Up Reminders</button>
-                    </div>
-                            <button type="button" class="secondary-button w-full back-to-service">
-                                Back to Service Sign Up
-                            </button>
+                            <!-- Verification code section (initially hidden) -->
+                            <div id="verification-section" class="hidden space-y-4">
+                                <div class="space-y-2">
+                                    <label class="form-label" for="verification-code">Verification Code</label>
+                                    <p class="text-sm text-muted-foreground">Enter the code we sent to your contact method</p>
+                                    <div class="flex space-x-2">
+                                        <input
+                                            type="text"
+                                            id="verification-code"
+                                            name="verification-code"
+                                            class="form-input"
+                                            placeholder="Enter code"
+                                            maxlength="6"
+                                        >
+                                        <button type="button" id="verify-code-btn" class="btn-secondary">Verify</button>
+                                    </div>
+                                    <p id="verification-message" class="text-sm"></p>
+                                </div>
+                                <button type="button" id="resend-code-btn" class="text-sm text-primary underline">Resend code</button>
+                            </div>
+                            
+                            <!-- Success message (initially hidden) -->
+                            <div id="verification-success" class="hidden space-y-4">
+                                <div class="bg-green-50 p-4 rounded-md border border-green-200">
+                                    <div class="flex">
+                                        <div class="flex-shrink-0">
+                                            <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <div class="ml-3">
+                                            <h3 class="text-sm font-medium text-green-800">Verification successful!</h3>
+                                            <div class="mt-2 text-sm text-green-700">
+                                                <p>You're all set to receive reminders for your garbage collection days.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Form submission buttons -->
+                            <div id="submit-section">
+                                <div class="form-actions">
+                                    <button type="submit" id="setup-reminders-btn" class="btn-primary">Save Schedule & Set Up Reminders</button>
+                                </div>
+                                <button type="button" class="secondary-button w-full back-to-service">
+                                    Back to Service Sign Up
+                                </button>
+                            </div>
 
                             <div class="text-xs text-muted-foreground space-y-2">
                                 <p>
@@ -559,6 +601,6 @@
     
     <!-- Internal Scripts -->
     <script src="../assets/js/supabase-client.js"></script>
-    <script src="../assets/js/service-details.js"></script>
+    <script src="../assets/js/service-details.js" type="module"></script>
 </body>
 </html>
